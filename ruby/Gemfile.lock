@@ -1,0 +1,18 @@
+PATH
+  remote: .
+  specs:
+    hastur (1.0.0)
+      multi_json
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    multi_json (1.1.0)
+    rake (0.9.2.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  hastur!
+  rake
