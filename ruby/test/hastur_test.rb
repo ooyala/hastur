@@ -60,7 +60,7 @@ class HasturApiTest < Test::Unit::TestCase
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
     assert_equal("myApp", hash[:labels][:app])
-    assert_equal("heartbeat", hash[:_route].to_s)
+    assert_equal("heartbeat_client", hash[:_route].to_s)
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
@@ -70,8 +70,8 @@ class HasturApiTest < Test::Unit::TestCase
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
     assert_not_nil hash
-    assert_equal("heartbeat", hash[:_route].to_s)
-    assert_equal("client_heartbeat", hash[:labels][:app])
+    assert_equal("heartbeat_client", hash[:_route].to_s)
+    assert_equal("client_heartbeat", hash[:labels][:app].to_s)
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
