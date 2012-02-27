@@ -271,7 +271,9 @@ module Hastur
   # Use this method to report statistics at a fixed time interval.
   #
   def every( interval, &block )
-    raise "Interval must be one of these: #{@intervals}, you gave #{interval.inspect}" unless @intervals.include?(interval)
+    unless @intervals.include?(interval)
+      raise "Interval must be one of these: #{@intervals}, you gave #{interval.inspect}"
+    end
     @mutex ||= Mutex.new
     @mutex.synchronize { @scheduled_blocks[interval] << block }
   end
