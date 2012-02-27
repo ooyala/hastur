@@ -10,3 +10,4 @@ namespace "test" do
   end
 end
 
+task "test" => "test:units"
