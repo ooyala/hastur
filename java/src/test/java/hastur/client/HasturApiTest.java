@@ -102,7 +102,7 @@ public class HasturApiTest {
   @Test
   public void testApiHeartbeat() {
     try {
-      Thread.sleep(61*1000);    // 60 seconds
+      Thread.sleep(61*1000);    // 61 seconds
       List<JSONObject> msgs = HasturApi.__getBufferedMsgs();
       assertTrue(msgs.size() > 0);
       JSONObject o = msgs.get(msgs.size()-1);
