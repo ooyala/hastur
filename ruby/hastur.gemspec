@@ -13,7 +13,8 @@ Gem::Specification.new do |s|
   s.summary     = "A gem used to communicate with the Hastur Client through UDP."
   s.rubyforge_project = "hastur"
 
-  s.add_dependency "multi_json"
+  s.add_development_dependency "yard"
+  s.add_runtime_dependency "multi_json"
 
   s.files         = `git ls-files`.split("\n")
   s.require_paths = ["lib"]

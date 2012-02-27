@@ -8,9 +8,11 @@ GEM
   remote: http://rubygems.org/
   specs:
     multi_json (1.1.0)
+    yard (0.7.5)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
   hastur!
+  yard
