@@ -27,7 +27,7 @@ public class HasturApiTest {
 
   @Test
   public void testGauge() {
-    long currTime = System.nanoTime() / 1000;
+    long currTime = System.currentTimeMillis() * 1000;
     boolean isSuccess = HasturApi.gauge("myLatency", currTime, 9.2, null);
     boolean received = false;
     List<JSONObject> msgs = HasturApi.__getBufferedMsgs();
@@ -56,7 +56,7 @@ public class HasturApiTest {
 
   @Test
   public void testCounter() {
-    long currTime = System.nanoTime() / 1000; 
+    long currTime = System.currentTimeMillis() * 1000; 
     boolean isSuccess = HasturApi.counter("myLatency", currTime, 2.0, null);
     List<JSONObject> msgs = HasturApi.__getBufferedMsgs();
     try {

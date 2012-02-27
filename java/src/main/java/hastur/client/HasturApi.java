@@ -67,7 +67,7 @@ public class HasturApi {
    * Sends a 'mark' stat to Hastur client daemon.
    */
   public static boolean mark(String name, Long timestamp, Map<String, String> labels) {
-    if(timestamp == null) timestamp = System.nanoTime() / 1000;
+    if(timestamp == null) timestamp = System.currentTimeMillis() * 1000;
     JSONObject o = new JSONObject();
     try {
       o.put("_route", "stat");
@@ -86,7 +86,7 @@ public class HasturApi {
    * Sends a 'counter' stat to Hastur client daemon.
    */
   public static boolean counter(String name, Long timestamp, double increment, Map<String, String> labels) {
-    if(timestamp == null) timestamp = System.nanoTime() / 1000;
+    if(timestamp == null) timestamp = System.currentTimeMillis() * 1000;
     JSONObject o = new JSONObject();
     try {
       o.put("_route", "stat");
@@ -106,7 +106,7 @@ public class HasturApi {
    * Sends a 'gauge' stat to Hastur client daemon.
    */
   public static boolean gauge(String name, Long timestamp, double value, Map<String, String> labels) {
-    if(timestamp == null) timestamp = System.nanoTime() / 1000;
+    if(timestamp == null) timestamp = System.currentTimeMillis() * 1000;
     JSONObject o = new JSONObject();
     try {
       o.put("_route", "stat");
