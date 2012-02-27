@@ -66,13 +66,11 @@ module Hastur
     end
   end
 
-  protected
-
   #
   # Best effort to make all timestamps 64 bit numbers that represent the total number of
   # microseconds since Jan 1, 1970 at midnight UTC.
   #
-  def normalize_timestamp(timestamp)
+  def normalize_timestamp(timestamp = nil)
     timestamp = Time.now if timestamp.nil?
 
     case timestamp
@@ -90,6 +88,8 @@ module Hastur
       raise "Unable to validate timestamp: #{timestamp}"
     end
   end
+
+  protected
 
   #
   # Returns the default labels for any UDP message that ships.
