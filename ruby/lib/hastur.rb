@@ -66,6 +66,8 @@ module Hastur
     end
   end
 
+  public
+
   #
   # Best effort to make all timestamps 64 bit numbers that represent the total number of
   # microseconds since Jan 1, 1970 at midnight UTC.
