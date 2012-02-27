@@ -69,10 +69,12 @@ module Hastur
   public
 
   #
-  # Best effort to make all timestamps 64 bit numbers that represent the total number of
-  # microseconds since Jan 1, 1970 at midnight UTC.
+  # Best effort to make all timestamps be Hastur timestamps, 64 bit
+  # numbers that represent the total number of microseconds since Jan
+  # 1, 1970 at midnight UTC.  Default to giving Time.now as a Hastur
+  # timestamp.
   #
-  def normalize_timestamp(timestamp = nil)
+  def normalize_timestamp(timestamp = Time.now)
     timestamp = Time.now if timestamp.nil?
 
     case timestamp
