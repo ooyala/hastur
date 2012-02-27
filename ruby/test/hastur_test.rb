@@ -76,13 +76,13 @@ class HasturApiTest < Test::Unit::TestCase
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
 
-  def test_notification
-    notification_msg = "This is my message"
-    Hastur.notification(notification_msg, {:foo => "foo", :bar => "bar"})
+  def test_event
+    event_msg = "This is my message"
+    Hastur.event(event_msg, {:foo => "foo", :bar => "bar"})
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
-    assert_equal("notification", hash[:_route].to_s)
-    assert_equal(notification_msg, hash[:message])
+    assert_equal("event", hash[:_route].to_s)
+    assert_equal(event_msg, hash[:message])
     assert hash[:labels].keys.sort == [:app, :bar, :foo, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
@@ -96,7 +96,8 @@ class HasturApiTest < Test::Unit::TestCase
     Hastur.register_plugin(plugin_path, plugin_args, plugin_name, interval, labels)
     msgs = Hastur.__test_msgs__
     hash = msgs[-1] 
-    assert_equal("register_plugin", hash[:_route].to_s)
+    assert_equal("registration", hash[:_route].to_s)
+    assert_equal("plugin", hash[:type].to_s)
     assert_equal(plugin_path, hash[:plugin_path])
     assert_equal(plugin_args, hash[:plugin_args])
     assert_equal(plugin_name, hash[:plugin])
@@ -110,7 +111,8 @@ class HasturApiTest < Test::Unit::TestCase
     Hastur.register_service(labels)
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
-    assert_equal("register_service", hash[:_route].to_s)
+    assert_equal("registration", hash[:_route].to_s)
+    assert_equal("service", hash[:type].to_s)
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end

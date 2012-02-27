@@ -71,8 +71,12 @@ module Hastur
   #
   # Best effort to make all timestamps be Hastur timestamps, 64 bit
   # numbers that represent the total number of microseconds since Jan
-  # 1, 1970 at midnight UTC.  Default to giving Time.now as a Hastur
-  # timestamp.
+  # 1, 1970 at midnight UTC.  Accepts second, millisecond or nanosecond
+  # timestamps, Ruby times, or nil for Time.now.
+  #
+  # @param timestamp The timestamp as a Fixnum, Float or Time.  Defaults to Time.now.
+  # @return [Fixnum] Number of microseconds since Jan 1, 1970 midnight UTC
+  # @raise RuntimeError Unable to validate timestamp format
   #
   def normalize_timestamp(timestamp = Time.now)
     timestamp = Time.now if timestamp.nil?
@@ -128,6 +132,10 @@ module Hastur
     match[1].to_i
   end
 
+  #
+  # Attempts to determine the application name.
+  # Consults $0 and Ecology, if present.
+  #
   def app_name
     return @app_name if @app_name
 
@@ -137,6 +145,9 @@ module Hastur
     @app_name = $0
   end
 
+  #
+  # Returns whether Hastur is in test mode
+  #
   def test_mode
     @test_mode || false
   end
@@ -150,6 +161,8 @@ module Hastur
 
   #
   # Sends a message unmolested to the HASTUR_UDP_PORT on 127.0.0.1
+  #
+  # @param m The message to send
   #
   def send_to_udp(m)
     if @__test_mode__
@@ -182,10 +195,16 @@ module Hastur
   # all messages are buffered in memory instead of getting shipped through UDP.
   # Only use this method for testing purposes.
   #
+  # @param [boolean] test_mode True to set test_mode, false to clear it.
+  #
   def __test_mode__=(test_mode)
     @__test_mode__ = test_mode
   end
 
+  #
+  # Set the application name that Hastur registers as.
+  #
+  # @param [String] new_name The new application name.
   def app_name=(new_name)
     @app_name = new_name
   end
@@ -193,6 +212,7 @@ module Hastur
   #
   # Set the UDP port.  Defaults to 8125
   #
+  # @param [Fixnum] new_port The new port number.
   def udp_port=(new_port)
     @udp_port = new_port
   end
@@ -200,6 +220,9 @@ module Hastur
   #
   # Sends a 'mark' stat to Hastur client daemon.
   #
+  # @param [String] name The mark name
+  # @param timestamp The timestamp as a Fixnum, Float or Time
+  # @param [Hash] labels Any additional data labels to send
   def mark(name, timestamp=Time.now, labels = {})
     send_to_udp :_route    => :stat,
                 :type      => :mark,
@@ -210,6 +233,11 @@ module Hastur
 
   #
   # Sends a 'counter' stat to Hastur client daemon.
+  #
+  # @param [String] name The counter name
+  # @param [Fixnum] increment Amount to increment the counter by
+  # @param timestamp The timestamp as a Fixnum, Float or Time
+  # @param [Hash] labels Any additional data labels to send
   #
   def counter(name, increment = 1, timestamp=Time.now, labels = {})
     send_to_udp :_route    => :stat,
@@ -223,6 +251,11 @@ module Hastur
   #
   # Sends a 'gauge' stat to Hastur client daemon.
   #
+  # @param [String] name The mark name
+  # @param value The value of the gauge as a Fixnum, Float or String
+  # @param timestamp The timestamp as a Fixnum, Float or Time
+  # @param [Hash] labels Any additional data labels to send
+  #
   def gauge(name, value, timestamp=Time.now, labels = {})
     send_to_udp :_route    => :stat,
                 :type      => :gauge,
@@ -233,19 +266,23 @@ module Hastur
   end
 
   #
-  # Constructs and sends a notify UDP packet
+  # Sends an event to the Hastur client daemon.
   #
-  def notification(message, labels = {})
-    send_to_udp :_route  => :notification,
+  # @param [String] message The message to send
+  # @param [Hash] labels Any additional data labels to send
+  #
+  def event(message, labels = {})
+    send_to_udp :_route  => :event,
                 :message => message,
                 :labels  => default_labels.merge(labels)
   end
 
   #
-  # Constructs and sends a register_plugin UDP packet
+  # Sends a plugin registration to the Hastur client daemon.
   #
   def register_plugin(plugin_path, plugin_args, plugin_name, interval, labels = {})
-    send_to_udp :_route      => :register_plugin,
+    send_to_udp :_route      => :registration,
+                :type        => :plugin,
                 :plugin_path => plugin_path,
                 :plugin_args => plugin_args,
                 :interval    => interval,
@@ -254,15 +291,21 @@ module Hastur
   end
 
   #
-  # Constructs and sends a register_service UDP packet
+  # Sends a service registration to the Hastur client daemon.
+  #
+  # @param [Hash] labels Any additional data labels to send
   #
   def register_service(labels = {})
-    send_to_udp :_route => :register_service,
+    send_to_udp :_route => :registration,
+                :type => :service,
                 :labels => default_labels.merge(labels)
   end
 
   #
-  # Constructs and sends heartbeat UDP packets.
+  # Sends a heartbeat to the Hastur client daemon.
+  #
+  # @param timestamp The timestamp as a Fixnum, Float or Time
+  # @param [Hash] labels Any additional data labels to send
   #
   def heartbeat(timestamp = Time.now, labels = {})
     send_to_udp :_route    => :heartbeat_client,
@@ -273,6 +316,9 @@ module Hastur
   #
   # Runs a block of code every so often, which is defined by interval. 
   # Use this method to report statistics at a fixed time interval.
+  #
+  # @param [Symbol] every How often to run.  One of [:five_secs, :minute, :hour, :day]
+  # @yield [] A block which will send Hastur messages, called periodically
   #
   def every( interval, &block )
     unless @intervals.include?(interval)
