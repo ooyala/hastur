@@ -4,7 +4,7 @@ require "hastur/version"
 
 Gem::Specification.new do |s|
   s.name        = "hastur"
-  s.version     = HasturApi::VERSION
+  s.version     = Hastur::VERSION
   s.platform    = Gem::Platform::RUBY
   s.authors     = ["Viet Nguyen"]
   s.email       = ["viet@ooyala.com"]
@@ -14,6 +14,7 @@ Gem::Specification.new do |s|
   s.rubyforge_project = "hastur"
 
   s.add_development_dependency "yard"
+  s.add_development_dependency "mocha"
   s.add_runtime_dependency "multi_json"
 
   s.files         = `git ls-files`.split("\n")

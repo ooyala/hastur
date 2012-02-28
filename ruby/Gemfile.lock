@@ -7,6 +7,9 @@ PATH
 GEM
   remote: http://rubygems.org/
   specs:
+    metaclass (0.0.1)
+    mocha (0.10.4)
+      metaclass (~> 0.0.1)
     multi_json (1.1.0)
     yard (0.7.5)
 
@@ -15,4 +18,5 @@ PLATFORMS
 
 DEPENDENCIES
   hastur!
+  mocha
   yard
