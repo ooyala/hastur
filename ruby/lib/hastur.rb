@@ -159,6 +159,11 @@ module Hastur
     @__test_msgs__.clear
   end
 
+  #
+  # Resets Hastur's background thread, removing all scheduled
+  # callbacks and resetting the times for all intervals.  This is TEST
+  # MODE ONLY and will do TERRIBLE THINGS IF CALLED IN PRODUCTION.
+  #
   def __reset_bg_thread__
     if @bg_thread
       @bg_thread.kill
