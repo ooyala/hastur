@@ -28,42 +28,7 @@ module Hastur
   def start_client_thread
     @intervals = [:five_secs, :minute, :hour, :day]
     @interval_values = [5, 60, 60*60, 60*60*2 ]
-    @last_time ||= Hash.new
-    @scheduled_blocks ||= Hash.new
-    # initialize all of the scheduling hashes
-    @intervals.each do |interval|
-      @last_time[interval] = Time.at(0)
-      @scheduled_blocks[interval] = []
-    end
-
-    # add a heartbeat background job
-    every :minute do
-      heartbeat(nil, {:app => :client_heartbeat})
-    end
-    
-    # define a thread that will schedule and execute all of the background jobs.
-    # it is not very accurate on the scheduling, but should not be a problem
-    @bg_thread = Thread.new do
-      begin
-        loop do
-          idx = 0
-          # for each of the interval buckets
-          @intervals.each do |interval|
-            curr_time = Time.now
-            # execute the scheduled items if time is up
-            if curr_time - @last_time[ interval ] >= @interval_values[idx]
-              @last_time[ interval ] = curr_time
-              @scheduled_blocks[ interval ].each { |b| b.call }
-            end
-            idx += 1
-          end
-
-          sleep 1       # rest
-        end
-      rescue Exception => e
-        STDERR.puts e.inspect
-      end
-    end
+    __reset_bg_thread__
   end
 
   public
@@ -153,7 +118,9 @@ module Hastur
   end
 
   #
-  # Get the UDP port.  Defaults to 8125.
+  # Get the UDP port.
+  #
+  # @return The UDP port.  Defaults to 8125.
   #
   def udp_port
     @udp_port || 8125
@@ -177,7 +144,9 @@ module Hastur
   public
 
   #
-  # Returns a list of messages that were queued up when in test mode.
+  # The list of messages that were queued up when in test mode.
+  #
+  # @return The list of messages in JSON format
   #
   def __test_msgs__
     @__test_msgs__ ||= []
@@ -188,6 +157,48 @@ module Hastur
   #
   def __clear_msgs__
     @__test_msgs__.clear
+  end
+
+  def __reset_bg_thread__
+    if @bg_thread
+      @bg_thread.kill
+      @bg_thread = nil
+    end
+
+    @last_time ||= Hash.new
+    @scheduled_blocks ||= Hash.new
+    # initialize all of the scheduling hashes
+    @intervals.each do |interval|
+      @last_time[interval] = Time.at(0)
+      @scheduled_blocks[interval] = []
+    end
+
+    # add a heartbeat background job
+    every :minute do
+      heartbeat("client_heartbeat", nil)
+    end
+
+    # define a thread that will schedule and execute all of the background jobs.
+    # it is not very accurate on the scheduling, but should not be a problem
+    @bg_thread = Thread.new do
+      begin
+        loop do
+          # for each of the interval buckets
+          @intervals.each_with_index do |interval, idx|
+            curr_time = Time.now
+            # execute the scheduled items if time is up
+            if curr_time - @last_time[ interval ] >= @interval_values[idx]
+              @last_time[interval] = curr_time
+              @scheduled_blocks[interval].each(&:call)
+            end
+          end
+
+          sleep 1       # rest
+        end
+      rescue Exception => e
+        STDERR.puts e.inspect
+      end
+    end
   end
 
   #
@@ -205,6 +216,7 @@ module Hastur
   # Set the application name that Hastur registers as.
   #
   # @param [String] new_name The new application name.
+  #
   def app_name=(new_name)
     @app_name = new_name
   end
@@ -213,6 +225,7 @@ module Hastur
   # Set the UDP port.  Defaults to 8125
   #
   # @param [Fixnum] new_port The new port number.
+  #
   def udp_port=(new_port)
     @udp_port = new_port
   end
@@ -307,8 +320,9 @@ module Hastur
   # @param timestamp The timestamp as a Fixnum, Float or Time
   # @param [Hash] labels Any additional data labels to send
   #
-  def heartbeat(timestamp = Time.now, labels = {})
-    send_to_udp :_route    => :heartbeat_client,
+  def heartbeat(name = "application.heartbeat", timestamp = Time.now, labels = {})
+    send_to_udp :_route    => :heartbeat,
+                :name => name,
                 :timestamp => normalize_timestamp(timestamp),
                 :labels    => default_labels.merge(labels)
   end
@@ -320,7 +334,7 @@ module Hastur
   # @param [Symbol] every How often to run.  One of [:five_secs, :minute, :hour, :day]
   # @yield [] A block which will send Hastur messages, called periodically
   #
-  def every( interval, &block )
+  def every(interval, &block)
     unless @intervals.include?(interval)
       raise "Interval must be one of these: #{@intervals}, you gave #{interval.inspect}"
     end

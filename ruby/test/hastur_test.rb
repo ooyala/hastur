@@ -1,6 +1,7 @@
 $LOAD_PATH.unshift File.join(File.dirname(__FILE__), "..", "lib")
 
 require "test/unit"
+require "mocha"
 require "hastur"
 require "multi_json"
 
@@ -56,22 +57,28 @@ class HasturApiTest < Test::Unit::TestCase
   end
 
   def test_heartbeat
-    Hastur.heartbeat(nil, :app => "myApp")
+    Hastur.heartbeat(nil, nil, :app => "myApp")
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
     assert_equal("myApp", hash[:labels][:app])
-    assert_equal("heartbeat_client", hash[:_route].to_s)
+    assert_equal("heartbeat", hash[:_route].to_s)
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
 
   def test_client_heartbeat
-    sleep 61    # wait for this heartbeat to come
+    Hastur.__reset_bg_thread__
+
+    # Make the "every" background thread think it's later than it is
+    tn = Time.now
+    Time.stubs(:now).returns(tn + 65)
+    sleep 2  # Then sleep long enough that it woke up and ran
+
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
     assert_not_nil hash
-    assert_equal("heartbeat_client", hash[:_route].to_s)
-    assert_equal("client_heartbeat", hash[:labels][:app].to_s)
+    assert_equal("heartbeat", hash[:_route].to_s)
+    assert_equal("client_heartbeat", hash[:name].to_s)
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
@@ -116,16 +123,22 @@ class HasturApiTest < Test::Unit::TestCase
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
-  
+
   def test_every
-    s = "every_5_second_test"
-    Hastur.every :five_secs do
-      Hastur.mark(s, Time.now)
+    Hastur.__reset_bg_thread__
+
+    Hastur.every :minute do
+      Hastur.mark("test_every")
     end
-    sleep 5
+
+    # Make the "every" background thread think it's later than it is
+    tn = Time.now
+    Time.stubs(:now).returns(tn + 65)
+    sleep 2  # Then sleep long enough that it woke up and ran
+
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
     assert_not_nil hash
-    assert_equal(s, hash[:name])
+    assert_equal("test_every", hash[:name])
   end
 end
