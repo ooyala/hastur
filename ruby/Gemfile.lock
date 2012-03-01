@@ -2,11 +2,13 @@ PATH
   remote: .
   specs:
     hastur (1.0.0)
+      chronic
       multi_json
 
 GEM
   remote: http://rubygems.org/
   specs:
+    chronic (0.6.7)
     metaclass (0.0.1)
     mocha (0.10.4)
       metaclass (~> 0.0.1)
