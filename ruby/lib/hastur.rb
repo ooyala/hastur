@@ -1,5 +1,6 @@
 require "multi_json"
 require "socket"
+require "date"
 
 #
 # Hastur API gem that allows services/apps to easily publish
@@ -47,8 +48,8 @@ module Hastur
     timestamp = Time.now if timestamp.nil? || timestamp == :now
 
     case timestamp
-    when Time
-      (timestamp.to_f*1000000).to_i
+    when Time, DateTime
+      (timestamp.to_time.to_f*1000000).to_i
     when SECS_1971..SECS_2100
       timestamp * 1000000
     when MILLI_SECS_1971..MILLI_SECS_2100

@@ -15,6 +15,27 @@ class HasturApiTest < Test::Unit::TestCase
     Hastur.__clear_msgs__
   end
 
+  def test_timestamp_nil
+    ts = Hastur.normalize_timestamp(nil)
+    ts2 = Hastur.normalize_timestamp(Time.now)
+
+    assert ts2 - ts < 1_000_000, "nil should work as a timestamp!"
+  end
+
+  def test_timestamp_now
+    ts = Hastur.normalize_timestamp(:now)
+    ts2 = Hastur.normalize_timestamp(Time.now)
+
+    assert ts2 - ts < 1_000_000, ":now should work as a timestamp!"
+  end
+
+  def test_timestamp_datetime
+    ts = Hastur.normalize_timestamp(DateTime.now)
+    ts2 = Hastur.normalize_timestamp(Time.now)
+
+    assert ts2 - ts < 1_000_000, "Ruby DateTime should work as a timestamp!"
+  end
+
   def test_counter
     curr_time = Time.now.to_i
     Hastur.counter("name", 1, curr_time)
