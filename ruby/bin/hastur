@@ -1,0 +1,104 @@
+#!/usr/bin/env ruby
+
+require "hastur"
+require "chronic"
+require "trollop"
+
+opts = Trollop::options do
+  banner <<EOS
+#{$0} is a command-line program to send Hastur metrics.
+
+Usage:
+  #{$0} [options] <type> [<name> [<value>]]
+
+Examples:
+  #{$0} counter things.to.do 4 --labels app=MyApp type=todo
+  #{$0} heartbeat slow.cron.job
+  #{$0} mark script.ran.after.failed.job --labels env=development activity=debugging
+  #{$0} gauge old.gauge 37.1 --time "3 months ago Saturday at 5pm"
+
+Options:
+EOS
+  opt :time,     "Timestamp to send",       :type => String
+  opt :label,    "Labels to send",          :type => :strings,           :multi => true
+end
+
+time = Time.now
+
+if opts[:time]
+  time = Chronic.parse opts[:time]
+end
+
+Trollop::die "you must give a type!" if ARGV.empty?
+type = ARGV.shift.downcase
+
+TYPES = {
+  "mark" => {
+    :name => true,
+    :value => false
+  },
+  "gauge" => {
+    :name => true,
+    :value => true
+  },
+  "counter" => {
+    :name => true,
+    :value => false
+  },
+  "heartbeat" => {
+    :name => false,
+    :value => false
+  }
+}
+
+Trollop::die "Type must be one of: #{TYPES.keys.join(', ')}" unless TYPES[type]
+
+#
+# This method tries to evaluate a string as Ruby and, if it can't,
+# dies saying so.
+#
+# @param [String] value_string The code to evaluate
+# @param [String] description What the value will be used as
+# @return The result of the eval
+# @raise TrollopException Your string didn't parse or raised an exception
+#
+def try_eval(value_string, description)
+  begin
+    value = eval value_string
+  rescue Exception
+    Trollop::die "Your #{description} (#{value_string}) didn't run as Ruby!"
+  end
+  value
+end
+
+args = [ type ]
+
+if ARGV.size > 0
+  name = ARGV.shift
+  args << name
+elsif TYPES[type][:name]
+  Trollop::die "You must give a name for a metric of type #{type}!"
+end
+
+if ARGV.size > 0
+  value = try_eval(ARGV.shift, "value")
+  args << value
+elsif TYPES[type][:value]
+  Trollop::die "You must give a value for a metric of type #{type}!"
+end
+
+args << time
+
+labels = {}
+if opts[:label]
+  opts[:label].flatten.each do |item|
+    name, value = item.split("=")
+    labels[name] = try_eval(value, "label value")
+  end
+end
+
+args << labels
+
+puts "Arguments for call: #{args.inspect}"
+
+Hastur.send(*args)
