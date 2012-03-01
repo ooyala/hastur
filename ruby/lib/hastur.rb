@@ -37,14 +37,14 @@ module Hastur
   # Best effort to make all timestamps be Hastur timestamps, 64 bit
   # numbers that represent the total number of microseconds since Jan
   # 1, 1970 at midnight UTC.  Accepts second, millisecond or nanosecond
-  # timestamps, Ruby times, or nil for Time.now.
+  # timestamps and Ruby times.  You can also give :now or nil for Time.now.
   #
   # @param timestamp The timestamp as a Fixnum, Float or Time.  Defaults to Time.now.
   # @return [Fixnum] Number of microseconds since Jan 1, 1970 midnight UTC
   # @raise RuntimeError Unable to validate timestamp format
   #
   def normalize_timestamp(timestamp = Time.now)
-    timestamp = Time.now if timestamp.nil?
+    timestamp = Time.now if timestamp.nil? || timestamp == :now
 
     case timestamp
     when Time
