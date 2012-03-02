@@ -78,7 +78,7 @@ class HasturApiTest < Test::Unit::TestCase
   end
 
   def test_heartbeat
-    Hastur.heartbeat(nil, nil, :app => "myApp")
+    Hastur.heartbeat(nil, nil, nil, :app => "myApp")
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
     assert_equal("myApp", hash[:labels][:app])

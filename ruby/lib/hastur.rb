@@ -181,7 +181,7 @@ module Hastur
 
     # add a heartbeat background job
     every :minute do
-      heartbeat("client_heartbeat", nil)
+      heartbeat("client_heartbeat")
     end
 
     # define a thread that will schedule and execute all of the background jobs.
@@ -326,9 +326,10 @@ module Hastur
   # @param timestamp The timestamp as a Fixnum, Float or Time
   # @param [Hash] labels Any additional data labels to send
   #
-  def heartbeat(name = "application.heartbeat", timestamp = Time.now, labels = {})
+  def heartbeat(name = "application.heartbeat", value = nil, timestamp = Time.now, labels = {})
     send_to_udp :_route    => :heartbeat,
                 :name => name,
+                :value => value,
                 :timestamp => normalize_timestamp(timestamp),
                 :labels    => default_labels.merge(labels)
   end
