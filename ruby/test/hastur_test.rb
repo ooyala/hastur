@@ -16,22 +16,22 @@ class HasturApiTest < Test::Unit::TestCase
   end
 
   def test_timestamp_nil
-    ts = Hastur.normalize_timestamp(nil)
-    ts2 = Hastur.normalize_timestamp(Time.now)
+    ts = Hastur.timestamp(nil)
+    ts2 = Hastur.timestamp(Time.now)
 
     assert ts2 - ts < 1_000_000, "nil should work as a timestamp!"
   end
 
   def test_timestamp_now
-    ts = Hastur.normalize_timestamp(:now)
-    ts2 = Hastur.normalize_timestamp(Time.now)
+    ts = Hastur.timestamp(:now)
+    ts2 = Hastur.timestamp(Time.now)
 
     assert ts2 - ts < 1_000_000, ":now should work as a timestamp!"
   end
 
   def test_timestamp_datetime
-    ts = Hastur.normalize_timestamp(DateTime.now)
-    ts2 = Hastur.normalize_timestamp(Time.now)
+    ts = Hastur.timestamp(DateTime.now)
+    ts2 = Hastur.timestamp(Time.now)
 
     assert ts2 - ts < 1_000_000, "Ruby DateTime should work as a timestamp!"
   end
@@ -66,7 +66,7 @@ class HasturApiTest < Test::Unit::TestCase
  
   def test_mark
     curr_time = Time.now.to_i
-    Hastur.mark("myName", curr_time)
+    Hastur.mark("myName", nil, curr_time)
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
     assert_equal("stat", hash[:_route].to_s)
@@ -78,7 +78,7 @@ class HasturApiTest < Test::Unit::TestCase
   end
 
   def test_heartbeat
-    Hastur.heartbeat(nil, nil, nil, :app => "myApp")
+    Hastur.heartbeat(nil, nil, nil, :now, :app => "myApp")
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
     assert_equal("myApp", hash[:labels][:app])
@@ -124,9 +124,9 @@ class HasturApiTest < Test::Unit::TestCase
     plugin_path = "plugin_path"
     plugin_args = "plugin_args"
     plugin_name = "plugin_name"
-    interval = 100
+    interval = :five_minutes
     labels = {:foo => "foo"}
-    Hastur.register_plugin(plugin_path, plugin_args, plugin_name, interval, nil, labels)
+    Hastur.register_plugin(plugin_name, plugin_path, plugin_args, interval, nil, labels)
     msgs = Hastur.__test_msgs__
     hash = msgs[-1] 
     assert_equal("registration", hash[:_route].to_s)

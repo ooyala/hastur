@@ -21,6 +21,8 @@ module Hastur
   MICRO_SECS_1971 = 31536000000000
   NANO_SECS_1971  = 31536000000000000
 
+  PLUGIN_INTERVALS = [ :five_minutes, :thirty_minutes, :hourly, :daily, :monthly ]
+
   private
 
   #
@@ -44,7 +46,7 @@ module Hastur
   # @return [Fixnum] Number of microseconds since Jan 1, 1970 midnight UTC
   # @raise RuntimeError Unable to validate timestamp format
   #
-  def normalize_timestamp(timestamp = Time.now)
+  def epoch_usec(timestamp=Time.now)
     timestamp = Time.now if timestamp.nil? || timestamp == :now
 
     case timestamp
@@ -62,6 +64,8 @@ module Hastur
       raise "Unable to validate timestamp: #{timestamp}"
     end
   end
+
+  alias :timestamp :epoch_usec
 
   protected
 
@@ -237,120 +241,163 @@ module Hastur
   end
 
   #
-  # Sends a 'mark' stat to Hastur client daemon.
+  # Sends a 'mark' stat to Hastur.  A mark gives the time that
+  # an interesting event occurred even with no value attached.
+  # You can also use a mark to send back string-valued stats
+  # that might otherwise be guages -- "Green", "Yellow",
+  # "Red" or similar.
+  #
+  # It is different from a Hastur event because it happens at
+  # stat priority -- it can be batched or slightly delayed,
+  # and doesn't have an end-to-end acknowledgement included.
   #
   # @param [String] name The mark name
-  # @param timestamp The timestamp as a Fixnum, Float or Time
+  # @param [String] value An optional string value
+  # @param timestamp The timestamp as a Fixnum, Float, Time or :now
   # @param [Hash] labels Any additional data labels to send
-  def mark(name, timestamp=Time.now, labels = {})
+  #
+  def mark(name, value = nil, timestamp=:now, labels={})
     send_to_udp :_route    => :stat,
                 :type      => :mark,
                 :name      => name,
-                :timestamp => normalize_timestamp(timestamp),
+                :timestamp => epoch_usec(timestamp),
                 :labels    => default_labels.merge(labels)
   end
 
   #
-  # Sends a 'counter' stat to Hastur client daemon.
+  # Sends a 'counter' stat to Hastur.  Counters are linear,
+  # and are sent as deltas (differences).  Sending an
+  # increment of 1 adds 1 to the value of the counter.
   #
   # @param [String] name The counter name
   # @param [Fixnum] increment Amount to increment the counter by
-  # @param timestamp The timestamp as a Fixnum, Float or Time
+  # @param timestamp The timestamp as a Fixnum, Float, Time or :now
   # @param [Hash] labels Any additional data labels to send
   #
-  def counter(name, increment = 1, timestamp=Time.now, labels = {})
+  def counter(name, increment=1, timestamp=:now, labels={})
     send_to_udp :_route    => :stat,
                 :type      => :counter,
                 :name      => name,
-                :timestamp => normalize_timestamp(timestamp),
+                :timestamp => epoch_usec(timestamp),
                 :increment => increment,
                 :labels    => default_labels.merge(labels)
   end
 
   #
-  # Sends a 'gauge' stat to Hastur client daemon.
+  # Sends a 'gauge' stat to Hastur.  A gauge's value may or may
+  # not be on a linear scale.  It is sent as an exact value, not
+  # a difference.
   #
   # @param [String] name The mark name
-  # @param value The value of the gauge as a Fixnum, Float or String
-  # @param timestamp The timestamp as a Fixnum, Float or Time
+  # @param value The value of the gauge as a Fixnum or Float
+  # @param timestamp The timestamp as a Fixnum, Float, Time or :now
   # @param [Hash] labels Any additional data labels to send
   #
-  def gauge(name, value, timestamp=Time.now, labels = {})
+  def gauge(name, value, timestamp=:now, labels={})
     send_to_udp :_route    => :stat,
                 :type      => :gauge,
                 :name      => name,
-                :timestamp => normalize_timestamp(timestamp),
+                :timestamp => epoch_usec(timestamp),
                 :value     => value,
                 :labels    => default_labels.merge(labels)
   end
 
   #
-  # Sends an event to the Hastur client daemon.
+  # Sends an event to Hastur.  An event is high-priority and never buffered,
+  # and will be sent preferentially to stats or heartbeats.  It includes
+  # an end-to-end acknowledgement to ensure arrival, but is expensive
+  # to store, send and query.
+  #
+  # 'Attn_to' is a mechanism to describe the system or component in which the
+  # event occurs and who would care about it.  Obvious values to include in the
+  # array include user logins, email addresses, team names, and server, library
+  # or component names.  This allows making searches like "what events should I
+  # worry about?" or "what events have recently occurred on the Rails server?"
   #
   # @param [String] name The name of the event (ex: "bad.log.line")
-  # @param [String] subject The subject or message for this specific event
-  # @param [Array] attn_to The relevant components or teams for this event
-  # @param timestamp The timestamp, or :now or nil for right now
+  # @param [String] subject The subject or message for this specific event (ex "Got bad log line: @#$#@garbage@#$#@")
+  # @param [String] body An optional body with details of the event.  A stack trace or email body would go here.
+  # @param [Array] attn_to The relevant components or teams for this event.  Web hooks or email addresses would go here.
+  # @param timestamp The timestamp as a Fixnum, Float, Time or :now
   # @param [Hash] labels Any additional data labels to send
   #
-  def event(name, subject = nil, body = nil, attn_to = [], timestamp = nil, labels = {})
+  def event(name, subject=nil, body=nil, attn_to=[], timestamp=:now, labels={})
     send_to_udp :_route  => :event,
                 :name => name,
                 :subject => subject,
                 :body => body,
                 :attn => attn_to,
-                :timestamp => normalize_timestamp(timestamp),
+                :timestamp => epoch_usec(timestamp),
                 :labels  => default_labels.merge(labels)
   end
 
   #
-  # Sends a plugin registration to the Hastur client daemon.
+  # Sends a plugin registration to Hastur.  A plugin is a program on the host machine which
+  # can be run to determine status of the machine, an application or anything else interesting.
   #
+  # This registration tells Hastur to begin scheduling runs
+  # of the plugin and report back on the resulting status codes or crashes.
+  #
+  # @param [String] name The name of the plugin, and of the heartbeat sent back
   # @param [String] plugin_path The path on the local file system to this plugin executable
   # @param [Array] plugin_args The array of arguments to pass to the plugin executable
-  # @param [String] plugin_name The name of the plugin, and of the heartbeat sent back
-  # @param [Symbol] interval The interval to run the plugin.  One of:  PLUGIN_INTERVALS
-  # @param timestamp The timestamp, or :now or nil for right now
+  # @param [Symbol] plugin_interval The interval to run the plugin.  The scheduling will be slightly approximate.  One of:  PLUGIN_INTERVALS
+  # @param timestamp The timestamp as a Fixnum, Float, Time or :now
   # @param [Hash] labels Any additional data labels to send
   #
-  def register_plugin(plugin_path, plugin_args, plugin_name, interval, timestamp, labels = {})
+  def register_plugin(name, plugin_path, plugin_args, plugin_interval, timestamp=:now, labels={})
+    unless PLUGIN_INTERVALS.include?(plugin_interval)
+      raise "Interval must be one of: #{PLUGIN_INTERVALS.join(', ')}"
+    end
     send_to_udp :_route      => :registration,
                 :type        => :plugin,
                 :plugin_path => plugin_path,
                 :plugin_args => plugin_args,
-                :interval    => interval,
-                :plugin      => plugin_name,
-                :timestamp   => normalize_timestamp(timestamp),
+                :interval    => plugin_interval,
+                :plugin      => name,
+                :timestamp   => epoch_usec(timestamp),
                 :labels      => default_labels.merge(labels)
   end
 
   #
-  # Sends a service registration to the Hastur client daemon.
+  # Sends a service registration to Hastur.
   #
   # @param [Hash] labels Any additional data labels to send
   #
-  def register_service(labels = {})
+  def register_service(name, labels={})
     send_to_udp :_route => :registration,
                 :type => :service,
+                :name => name,
                 :labels => default_labels.merge(labels)
   end
 
   #
-  # Sends a heartbeat to the Hastur client daemon.
+  # Sends a heartbeat to Hastur.  A heartbeat is a periodic
+  # message which indicates that a host, application or
+  # service is currently running.  It is higher priority
+  # than a statistic and should not be batched, but is
+  # lower priority than an event does not include an
+  # end-to-end acknowledgement.
   #
-  # @param timestamp The timestamp as a Fixnum, Float or Time
+  # Plugin results are sent as a heartbeat with the
+  # plugin's name as the heartbeat name.
+  #
+  # @param [String] name The name of the heartbeat.
+  # @param value The value of the heartbeat as a Fixnum or Float
+  # @param [Float] timeout How long in seconds to expect to wait, at maximum, before the next heartbeat.  If this is nil, don't worry if it doesn't arrive.
+  # @param timestamp The timestamp as a Fixnum, Float, Time or :now
   # @param [Hash] labels Any additional data labels to send
   #
-  def heartbeat(name = "application.heartbeat", value = nil, timestamp = Time.now, labels = {})
+  def heartbeat(name="application.heartbeat", value=nil, timeout = nil, timestamp=:now, labels={})
     send_to_udp :_route    => :heartbeat,
                 :name => name,
                 :value => value,
-                :timestamp => normalize_timestamp(timestamp),
+                :timestamp => epoch_usec(timestamp),
                 :labels    => default_labels.merge(labels)
   end
 
   #
-  # Runs a block of code every so often, which is defined by interval. 
+  # Runs a block of code periodically every interval.
   # Use this method to report statistics at a fixed time interval.
   #
   # @param [Symbol] every How often to run.  One of [:five_secs, :minute, :hour, :day]
