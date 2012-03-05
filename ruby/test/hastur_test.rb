@@ -105,12 +105,17 @@ class HasturApiTest < Test::Unit::TestCase
   end
 
   def test_event
-    event_msg = "This is my message"
-    Hastur.event(event_msg, {:foo => "foo", :bar => "bar"})
+    event_name = "bad.log.line"
+    subject = "Got a bad log line: '@@@@@@@@@'"
+    body = "a\nb\nc\nd\ne\nf"
+    attn = [ "backlot", "helios", "analytics-helios-api" ]
+    Hastur.event(event_name, subject, body, attn, :now, {:foo => "foo", :bar => "bar"})
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
     assert_equal("event", hash[:_route].to_s)
-    assert_equal(event_msg, hash[:message])
+    assert_equal(event_name, hash[:name])
+    assert_equal(subject, hash[:subject])
+    assert_equal(attn, hash[:attn])
     assert hash[:labels].keys.sort == [:app, :bar, :foo, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end

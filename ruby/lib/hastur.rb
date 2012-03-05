@@ -287,12 +287,19 @@ module Hastur
   #
   # Sends an event to the Hastur client daemon.
   #
-  # @param [String] message The message to send
+  # @param [String] name The name of the event (ex: "bad.log.line")
+  # @param [String] subject The subject or message for this specific event
+  # @param [Array] attn_to The relevant components or teams for this event
+  # @param timestamp The timestamp, or :now or nil for right now
   # @param [Hash] labels Any additional data labels to send
   #
-  def event(message, labels = {})
+  def event(name, subject = nil, body = nil, attn_to = [], timestamp = nil, labels = {})
     send_to_udp :_route  => :event,
-                :message => message,
+                :name => name,
+                :subject => subject,
+                :body => body,
+                :attn => attn_to,
+                :timestamp => normalize_timestamp(timestamp),
                 :labels  => default_labels.merge(labels)
   end
 
