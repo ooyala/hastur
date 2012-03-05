@@ -126,7 +126,7 @@ class HasturApiTest < Test::Unit::TestCase
     plugin_name = "plugin_name"
     interval = 100
     labels = {:foo => "foo"}
-    Hastur.register_plugin(plugin_path, plugin_args, plugin_name, interval, labels)
+    Hastur.register_plugin(plugin_path, plugin_args, plugin_name, interval, nil, labels)
     msgs = Hastur.__test_msgs__
     hash = msgs[-1] 
     assert_equal("registration", hash[:_route].to_s)

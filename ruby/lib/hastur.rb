@@ -306,13 +306,21 @@ module Hastur
   #
   # Sends a plugin registration to the Hastur client daemon.
   #
-  def register_plugin(plugin_path, plugin_args, plugin_name, interval, labels = {})
+  # @param [String] plugin_path The path on the local file system to this plugin executable
+  # @param [Array] plugin_args The array of arguments to pass to the plugin executable
+  # @param [String] plugin_name The name of the plugin, and of the heartbeat sent back
+  # @param [Symbol] interval The interval to run the plugin.  One of:  PLUGIN_INTERVALS
+  # @param timestamp The timestamp, or :now or nil for right now
+  # @param [Hash] labels Any additional data labels to send
+  #
+  def register_plugin(plugin_path, plugin_args, plugin_name, interval, timestamp, labels = {})
     send_to_udp :_route      => :registration,
                 :type        => :plugin,
                 :plugin_path => plugin_path,
                 :plugin_args => plugin_args,
                 :interval    => interval,
                 :plugin      => plugin_name,
+                :timestamp   => normalize_timestamp(timestamp),
                 :labels      => default_labels.merge(labels)
   end
 
