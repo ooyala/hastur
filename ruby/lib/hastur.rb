@@ -360,18 +360,6 @@ module Hastur
   end
 
   #
-  # Sends a service registration to Hastur.
-  #
-  # @param [Hash] labels Any additional data labels to send
-  #
-  def register_service(name, labels={})
-    send_to_udp :_route => :registration,
-                :type => :service,
-                :name => name,
-                :labels => default_labels.merge(labels)
-  end
-
-  #
   # Sends a heartbeat to Hastur.  A heartbeat is a periodic
   # message which indicates that a host, application or
   # service is currently running.  It is higher priority

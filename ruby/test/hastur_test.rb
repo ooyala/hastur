@@ -139,17 +139,6 @@ class HasturApiTest < Test::Unit::TestCase
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
 
-  def test_register_service
-    labels = {}
-    Hastur.register_service(labels)
-    msgs = Hastur.__test_msgs__
-    hash = msgs[-1]
-    assert_equal("registration", hash[:_route].to_s)
-    assert_equal("service", hash[:type].to_s)
-    assert hash[:labels].keys.sort == [:app, :pid, :tid],
-      "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
-  end
-
   def test_every
     Hastur.__reset_bg_thread__
 
