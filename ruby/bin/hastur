@@ -23,35 +23,37 @@ EOS
   opt :label,    "Labels to send",          :type => :strings,           :multi => true
 end
 
-time = Time.now
-
-if opts[:time]
-  time = Chronic.parse opts[:time]
-end
-
 Trollop::die "you must give a type!" if ARGV.empty?
-type = ARGV.shift.downcase
+Type = ARGV.shift.downcase
+
+# Args:
+#   - mark: name, value, timestamp, labels
+#   - counter: name, increment, timestamp, labels
+#   - gauge: name, value, timestamp, labels
+#   - event: name, subject, body, attn, timestamp, labels
+#   - heartbeat: name, value, timeout, timestamp, labels
 
 TYPES = {
   "mark" => {
     :name => true,
-    :value => false
+    :value => :maybe,
   },
   "gauge" => {
     :name => true,
-    :value => true
+    :value => true,
   },
   "counter" => {
     :name => true,
-    :value => false
+    :value => :maybe,
   },
   "heartbeat" => {
-    :name => false,
-    :value => false
+    :name => :maybe,
+    :value => :maybe,
+    :timeout => :maybe,
   }
 }
 
-Trollop::die "Type must be one of: #{TYPES.keys.join(', ')}" unless TYPES[type]
+Trollop::die "Type must be one of: #{TYPES.keys.join(', ')}" unless TYPES[Type]
 
 #
 # This method tries to evaluate a string as Ruby and, if it can't,
@@ -71,24 +73,44 @@ def try_eval(value_string, description)
   value
 end
 
-args = [ type ]
+#
+# Try to get an argument by name if this message type supports it.
+#
+def try_get_arg(args, arg_name, message_type)
+  # Doesn't allow this arg type?  Return quietly.
+  return unless TYPES[Type][arg_name]
 
-if ARGV.size > 0
-  name = ARGV.shift
-  args << name
-elsif TYPES[type][:name]
-  Trollop::die "You must give a name for a metric of type #{type}!"
+  if ARGV.size > 0
+    # If the arg is here and TYPES[Type][arg_name] is true or maybe, use it.
+    if block_given?
+      args << yield(ARGV.shift)
+    else
+      args << ARGV.shift
+    end
+  elsif TYPES[Type][arg_name] == :maybe
+    args << nil
+  else
+    Trollop::die "You must give a #{arg_name} for a metric of type #{Type}!"
+  end
 end
 
-if ARGV.size > 0
-  value = try_eval(ARGV.shift, "value")
-  args << value
-elsif TYPES[type][:value]
-  Trollop::die "You must give a value for a metric of type #{type}!"
-end
+##############################
+# Build the argument list
+##############################
+args = [ Type ]
 
+try_get_arg(args, :name, Type, &:to_s)
+try_get_arg(args, :value, Type)
+# TODO(noah): add timeout for heartbeat
+
+# Time is next to last
+time = Time.now
+if opts[:time]
+  time = Chronic.parse opts[:time]
+end
 args << time
 
+# Labels is last
 labels = {}
 if opts[:label]
   opts[:label].flatten.each do |item|
