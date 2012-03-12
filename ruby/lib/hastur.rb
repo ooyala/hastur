@@ -1,6 +1,7 @@
 require "multi_json"
 require "socket"
 require "date"
+require "thread"
 
 #
 # Hastur API gem that allows services/apps to easily publish
