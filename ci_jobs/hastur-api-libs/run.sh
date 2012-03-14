@@ -7,4 +7,4 @@ cd $REPO_ROOT/hastur/ruby
 rvm --create use 1.9.3@hastur
 gem install --no-rdoc --no-ri bundler
 bundle install
-rake --trace test:units
+COVERAGE=true rake --trace test:units
