@@ -6,21 +6,22 @@ require "trollop"
 
 opts = Trollop::options do
   banner <<EOS
-#{$0} is a command-line program to send Hastur metrics.
+hastur is a command-line program to send Hastur metrics.
 
 Usage:
-  #{$0} [options] <type> [<name> [<value>]]
+  hastur [options] <type> [<name> [<value>]]
 
 Examples:
-  #{$0} counter things.to.do 4 --labels app=MyApp type=todo
-  #{$0} heartbeat slow.cron.job
-  #{$0} mark script.ran.after.failed.job --labels env=development activity=debugging
-  #{$0} gauge old.gauge 37.1 --time "3 months ago Saturday at 5pm"
+  hastur counter things.to.do 4 --labels app=MyApp type=todo
+  hastur heartbeat slow.cron.job
+  hastur mark script.ran.after.failed.job --labels env=development activity=debugging
+  hastur gauge old.gauge 37.1 --time "3 months ago Saturday at 5pm"
 
 Options:
 EOS
   opt :time,     "Timestamp to send",       :type => String
   opt :label,    "Labels to send",          :type => :strings,           :multi => true
+  opt :print,    "Print the call args",     :type => :boolean,           :default => false
 end
 
 Trollop::die "you must give a type!" if ARGV.empty?
@@ -66,9 +67,9 @@ Trollop::die "Type must be one of: #{TYPES.keys.join(', ')}" unless TYPES[Type]
 #
 def try_eval(value_string, description)
   begin
-    value = eval value_string
+    value = eval(value_string)
   rescue Exception
-    Trollop::die "Your #{description} (#{value_string}) didn't run as Ruby!"
+    Trollop::die "Your #{description} (#{value_string}) didn't run as Ruby: #{$!.message}"
   end
   value
 end
@@ -83,14 +84,14 @@ def try_get_arg(args, arg_name, message_type)
   if ARGV.size > 0
     # If the arg is here and TYPES[Type][arg_name] is true or maybe, use it.
     if block_given?
-      args << yield(ARGV.shift)
+      args << yield(ARGV.shift, arg_name, message_type)
     else
-      args << ARGV.shift
+      args << try_eval(ARGV.shift, arg_name)
     end
   elsif TYPES[Type][arg_name] == :maybe
     args << nil
   else
-    Trollop::die "You must give a #{arg_name} for a metric of type #{Type}!"
+    Trollop::die "You must give a #{arg_name} for a metric of type #{Type}"
   end
 end
 
@@ -99,7 +100,7 @@ end
 ##############################
 args = [ Type ]
 
-try_get_arg(args, :name, Type, &:to_s)
+try_get_arg(args, :name, Type) { |arg, _, _| arg.to_s }
 try_get_arg(args, :value, Type)
 # TODO(noah): add timeout for heartbeat
 
@@ -121,6 +122,6 @@ end
 
 args << labels
 
-puts "Arguments for call: #{args.inspect}"
+puts "Hastur.send *#{args.inspect}" if opts[:print]
 
 Hastur.send(*args)
