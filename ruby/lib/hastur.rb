@@ -51,8 +51,12 @@ module Hastur
     timestamp = Time.now if timestamp.nil? || timestamp == :now
 
     case timestamp
-    when Time, DateTime
-      (timestamp.to_time.to_f*1000000).to_i
+    when Time
+      (timestamp.to_f*1000000).to_i
+    when DateTime
+      # Ruby 1.8.7 doesn't have to DateTime#to_time or DateTime#to_f method.
+      # For right now, declare failure.
+      raise "Ruby DateTime objects are not yet supported!"
     when SECS_1971..SECS_2100
       timestamp * 1000000
     when MILLI_SECS_1971..MILLI_SECS_2100

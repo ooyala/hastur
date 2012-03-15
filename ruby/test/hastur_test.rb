@@ -5,6 +5,14 @@ require "mocha"
 require "hastur"
 require "multi_json"
 
+# This is a hack to allow sorting symbols below in Ruby 1.8.
+# Ruby 1.9 actually already has this.
+class Symbol
+  define_method("<=>") do |obj|
+    self.to_s <=> obj.to_s
+  end
+end
+
 class HasturApiTest < Test::Unit::TestCase
 
   def setup
@@ -27,13 +35,6 @@ class HasturApiTest < Test::Unit::TestCase
     ts2 = Hastur.timestamp(Time.now)
 
     assert ts2 - ts < 1_000_000, ":now should work as a timestamp!"
-  end
-
-  def test_timestamp_datetime
-    ts = Hastur.timestamp(DateTime.now)
-    ts2 = Hastur.timestamp(Time.now)
-
-    assert ts2 - ts < 1_000_000, "Ruby DateTime should work as a timestamp!"
   end
 
   def test_counter
