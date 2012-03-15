@@ -14,7 +14,10 @@ GEM
       metaclass (~> 0.0.1)
     multi_json (1.1.0)
     rake (0.9.2.2)
-    simple_cov (0.2.0)
+    simplecov (0.6.1)
+      multi_json (~> 1.0)
+      simplecov-html (~> 0.5.3)
+    simplecov-html (0.5.3)
     yard (0.7.5)
 
 PLATFORMS
@@ -24,5 +27,5 @@ DEPENDENCIES
   hastur!
   mocha
   rake
-  simple_cov
+  simplecov
   yard
