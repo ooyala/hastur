@@ -45,7 +45,7 @@ class HasturApiTest < Test::Unit::TestCase
     assert_equal("stat", hash[:_route].to_s)
     assert_equal("name", hash[:name])
     assert_equal(curr_time*1000000, hash[:timestamp])
-    assert_equal(1, hash[:increment])
+    assert_equal(1, hash[:value])
     assert_equal("counter", hash[:type].to_s)
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"

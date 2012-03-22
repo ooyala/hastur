@@ -265,26 +265,27 @@ module Hastur
     send_to_udp :_route    => :stat,
                 :type      => :mark,
                 :name      => name,
+                :value     => value,
                 :timestamp => epoch_usec(timestamp),
                 :labels    => default_labels.merge(labels)
   end
 
   #
   # Sends a 'counter' stat to Hastur.  Counters are linear,
-  # and are sent as deltas (differences).  Sending an
-  # increment of 1 adds 1 to the value of the counter.
+  # and are sent as deltas (differences).  Sending a
+  # value of 1 adds 1 to the counter.
   #
   # @param [String] name The counter name
-  # @param [Fixnum] increment Amount to increment the counter by
+  # @param [Fixnum] value Amount to increment the counter by
   # @param timestamp The timestamp as a Fixnum, Float, Time or :now
   # @param [Hash] labels Any additional data labels to send
   #
-  def counter(name, increment=1, timestamp=:now, labels={})
+  def counter(name, value=1, timestamp=:now, labels={})
     send_to_udp :_route    => :stat,
                 :type      => :counter,
                 :name      => name,
+                :value     => value,
                 :timestamp => epoch_usec(timestamp),
-                :increment => increment,
                 :labels    => default_labels.merge(labels)
   end
 
@@ -302,8 +303,8 @@ module Hastur
     send_to_udp :_route    => :stat,
                 :type      => :gauge,
                 :name      => name,
-                :timestamp => epoch_usec(timestamp),
                 :value     => value,
+                :timestamp => epoch_usec(timestamp),
                 :labels    => default_labels.merge(labels)
   end
 
@@ -322,16 +323,16 @@ module Hastur
   # @param [String] name The name of the event (ex: "bad.log.line")
   # @param [String] subject The subject or message for this specific event (ex "Got bad log line: @#$#@garbage@#$#@")
   # @param [String] body An optional body with details of the event.  A stack trace or email body would go here.
-  # @param [Array] attn_to The relevant components or teams for this event.  Web hooks or email addresses would go here.
+  # @param [Array] attn The relevant components or teams for this event.  Web hooks or email addresses would go here.
   # @param timestamp The timestamp as a Fixnum, Float, Time or :now
   # @param [Hash] labels Any additional data labels to send
   #
-  def event(name, subject=nil, body=nil, attn_to=[], timestamp=:now, labels={})
+  def event(name, subject=nil, body=nil, attn=[], timestamp=:now, labels={})
     send_to_udp :_route  => :event,
                 :name => name,
                 :subject => subject,
                 :body => body,
-                :attn => attn_to,
+                :attn => attn,
                 :timestamp => epoch_usec(timestamp),
                 :labels  => default_labels.merge(labels)
   end
