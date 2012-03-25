@@ -5,9 +5,9 @@ require "thread"
 
 #
 # Hastur API gem that allows services/apps to easily publish
-# correct Hastur-commands to their local machine's UDP sockets. 
-# Bare minimum for all JSON packets is to have '_route' key/values.
-# This is how the Hastur router will know where to route the message.
+# correct Hastur-commands to their local machine's UDP sockets.
+# Bare minimum for all JSON packets is to have :type key/values to
+# map to a hastur message type, which the router uses for sink delivery.
 #
 module Hastur
   extend self
@@ -262,8 +262,7 @@ module Hastur
   # @param [Hash] labels Any additional data labels to send
   #
   def mark(name, value = nil, timestamp=:now, labels={})
-    send_to_udp :_route    => :stat,
-                :type      => :mark,
+    send_to_udp :type      => :mark,
                 :name      => name,
                 :value     => value,
                 :timestamp => epoch_usec(timestamp),
@@ -281,8 +280,7 @@ module Hastur
   # @param [Hash] labels Any additional data labels to send
   #
   def counter(name, value=1, timestamp=:now, labels={})
-    send_to_udp :_route    => :stat,
-                :type      => :counter,
+    send_to_udp :type      => :counter,
                 :name      => name,
                 :value     => value,
                 :timestamp => epoch_usec(timestamp),
@@ -300,8 +298,7 @@ module Hastur
   # @param [Hash] labels Any additional data labels to send
   #
   def gauge(name, value, timestamp=:now, labels={})
-    send_to_udp :_route    => :stat,
-                :type      => :gauge,
+    send_to_udp :type      => :gauge,
                 :name      => name,
                 :value     => value,
                 :timestamp => epoch_usec(timestamp),
@@ -328,7 +325,7 @@ module Hastur
   # @param [Hash] labels Any additional data labels to send
   #
   def event(name, subject=nil, body=nil, attn=[], timestamp=:now, labels={})
-    send_to_udp :_route  => :event,
+    send_to_udp :type => :event,
                 :name => name,
                 :subject => subject,
                 :body => body,
@@ -355,8 +352,7 @@ module Hastur
     unless PLUGIN_INTERVALS.include?(plugin_interval)
       raise "Interval must be one of: #{PLUGIN_INTERVALS.join(', ')}"
     end
-    send_to_udp :_route      => :registration,
-                :type        => :plugin,
+    send_to_udp :type        => :registration,
                 :plugin_path => plugin_path,
                 :plugin_args => plugin_args,
                 :interval    => plugin_interval,
@@ -383,8 +379,8 @@ module Hastur
   # @param [Hash] labels Any additional data labels to send
   #
   def heartbeat(name="application.heartbeat", value=nil, timeout = nil, timestamp=:now, labels={})
-    send_to_udp :_route    => :heartbeat,
-                :name => name,
+    send_to_udp :name => name,
+                :type => :heartbeat,
                 :value => value,
                 :timestamp => epoch_usec(timestamp),
                 :labels    => default_labels.merge(labels)
