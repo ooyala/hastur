@@ -78,14 +78,14 @@ module Hastur
   # Returns the default labels for any UDP message that ships.
   #
   def default_labels
-    @pid ||= Process.pid
+    pid = Process.pid
     thread = Thread.current
     unless thread[:tid]
       thread[:tid] = thread_id(thread)
     end
 
     {
-      :pid => @pid,
+      :pid => pid,
       :tid => thread[:tid],
       :app => app_name,
     }
