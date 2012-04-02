@@ -314,7 +314,7 @@ module Hastur
   # an end-to-end acknowledgement to ensure arrival, but is expensive
   # to store, send and query.
   #
-  # 'Attn_to' is a mechanism to describe the system or component in which the
+  # 'Attn' is a mechanism to describe the system or component in which the
   # event occurs and who would care about it.  Obvious values to include in the
   # array include user logins, email addresses, team names, and server, library
   # or component names.  This allows making searches like "what events should I
@@ -332,7 +332,7 @@ module Hastur
                 :name => name,
                 :subject => subject,
                 :body => body,
-                :attn => attn,
+                :attn => [ attn ].flatten,
                 :timestamp => epoch_usec(timestamp),
                 :labels  => default_labels.merge(labels)
   end
