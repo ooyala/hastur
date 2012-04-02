@@ -88,7 +88,7 @@ class HasturApiTest < Test::Unit::TestCase
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
 
-  def test_client_heartbeat
+  def test_process_heartbeat
     Hastur.__reset_bg_thread__
 
     # Make the "every" background thread think it's later than it is
@@ -100,7 +100,7 @@ class HasturApiTest < Test::Unit::TestCase
     hash = msgs[-1]
     assert_not_nil hash
     assert_equal("heartbeat", hash[:_route].to_s)
-    assert_equal("client_heartbeat", hash[:name].to_s)
+    assert_equal("process.heartbeat", hash[:name].to_s)
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end

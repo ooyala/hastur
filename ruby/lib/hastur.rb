@@ -190,7 +190,7 @@ module Hastur
 
     # add a heartbeat background job
     every :minute do
-      heartbeat("client_heartbeat")
+      heartbeat("process.heartbeat")
     end
 
     # define a thread that will schedule and execute all of the background jobs.
