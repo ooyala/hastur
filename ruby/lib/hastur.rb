@@ -190,7 +190,7 @@ module Hastur
 
     # add a heartbeat background job
     every :minute do
-      heartbeat("client_heartbeat")
+      heartbeat("hb_process")
     end
 
     # define a thread that will schedule and execute all of the background jobs.
@@ -352,7 +352,7 @@ module Hastur
     unless PLUGIN_INTERVALS.include?(plugin_interval)
       raise "Interval must be one of: #{PLUGIN_INTERVALS.join(', ')}"
     end
-    send_to_udp :type        => :registration,
+    send_to_udp :type        => :reg_process,
                 :plugin_path => plugin_path,
                 :plugin_args => plugin_args,
                 :interval    => plugin_interval,
@@ -380,7 +380,7 @@ module Hastur
   #
   def heartbeat(name="application.heartbeat", value=nil, timeout = nil, timestamp=:now, labels={})
     send_to_udp :name => name,
-                :type => :heartbeat,
+                :type => :hb_process,
                 :value => value,
                 :timestamp => epoch_usec(timestamp),
                 :labels    => default_labels.merge(labels)
