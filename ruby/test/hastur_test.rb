@@ -83,7 +83,7 @@ class HasturApiTest < Test::Unit::TestCase
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
     assert_equal("myApp", hash[:labels][:app])
-    assert_equal("heartbeat", hash[:type].to_s)
+    assert_equal("hb_process", hash[:type].to_s)
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
@@ -99,7 +99,7 @@ class HasturApiTest < Test::Unit::TestCase
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
     assert_not_nil hash
-    assert_equal("heartbeat", hash[:type].to_s)
+    assert_equal("hb_process", hash[:type].to_s)
     assert_equal("client_heartbeat", hash[:name].to_s)
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
@@ -130,7 +130,7 @@ class HasturApiTest < Test::Unit::TestCase
     Hastur.register_plugin(plugin_name, plugin_path, plugin_args, interval, nil, labels)
     msgs = Hastur.__test_msgs__
     hash = msgs[-1] 
-    assert_equal("registration", hash[:type].to_s)
+    assert_equal("reg_process", hash[:type].to_s)
     assert_equal(plugin_path, hash[:plugin_path])
     assert_equal(plugin_args, hash[:plugin_args])
     assert_equal(plugin_name, hash[:plugin])
