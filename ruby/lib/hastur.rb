@@ -29,7 +29,7 @@ module Hastur
   #
   # Starts a background thread that will execute blocks of code every so often.
   #
-  def start_client_thread
+  def start_background_thread
     @intervals = [:five_secs, :minute, :hour, :day]
     @interval_values = [5, 60, 60*60, 60*60*2 ]
     __reset_bg_thread__
@@ -190,7 +190,7 @@ module Hastur
 
     # add a heartbeat background job
     every :minute do
-      heartbeat("client_heartbeat")
+      heartbeat("process_heartbeat")
     end
 
     # define a thread that will schedule and execute all of the background jobs.
@@ -401,6 +401,6 @@ module Hastur
     @mutex.synchronize { @scheduled_blocks[interval] << block }
   end
 
-  # Automatically start the background thread for the client.
-  start_client_thread
+  # Automatically start the background thread for the process.
+  start_background_thread
 end
