@@ -42,7 +42,7 @@ class HasturApiTest < Test::Unit::TestCase
     Hastur.counter("name", 1, curr_time)
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
-    assert_equal("stat", hash[:_route].to_s)
+    assert_equal("counter", hash[:type].to_s)
     assert_equal("name", hash[:name])
     assert_equal(curr_time*1000000, hash[:timestamp])
     assert_equal(1, hash[:value])
@@ -56,7 +56,7 @@ class HasturApiTest < Test::Unit::TestCase
     Hastur.gauge("name", 9, curr_time)
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
-    assert_equal("stat", hash[:_route].to_s)
+    assert_equal("gauge", hash[:type].to_s)
     assert_equal("name", hash[:name])
     assert_equal(curr_time * 1000000, hash[:timestamp])
     assert_equal(9, hash[:value])
@@ -70,7 +70,7 @@ class HasturApiTest < Test::Unit::TestCase
     Hastur.mark("myName", nil, curr_time)
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
-    assert_equal("stat", hash[:_route].to_s)
+    assert_equal("mark", hash[:type].to_s)
     assert_equal("myName", hash[:name])
     assert_equal("mark", hash[:type].to_s)
     assert_equal(curr_time*1000000, hash[:timestamp])
@@ -83,7 +83,7 @@ class HasturApiTest < Test::Unit::TestCase
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
     assert_equal("myApp", hash[:labels][:app])
-    assert_equal("heartbeat", hash[:_route].to_s)
+    assert_equal("hb_process", hash[:type].to_s)
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
@@ -99,8 +99,8 @@ class HasturApiTest < Test::Unit::TestCase
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
     assert_not_nil hash
-    assert_equal("heartbeat", hash[:_route].to_s)
-    assert_equal("process.heartbeat", hash[:name].to_s)
+    assert_equal("hb_process", hash[:type].to_s)
+    assert_equal("process_heartbeat", hash[:name].to_s)
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
@@ -113,7 +113,7 @@ class HasturApiTest < Test::Unit::TestCase
     Hastur.event(event_name, subject, body, attn, :now, {:foo => "foo", :bar => "bar"})
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
-    assert_equal("event", hash[:_route].to_s)
+    assert_equal("event", hash[:type].to_s)
     assert_equal(event_name, hash[:name])
     assert_equal(subject, hash[:subject])
     assert_equal(attn, hash[:attn])
@@ -130,8 +130,7 @@ class HasturApiTest < Test::Unit::TestCase
     Hastur.register_plugin(plugin_name, plugin_path, plugin_args, interval, nil, labels)
     msgs = Hastur.__test_msgs__
     hash = msgs[-1] 
-    assert_equal("registration", hash[:_route].to_s)
-    assert_equal("plugin", hash[:type].to_s)
+    assert_equal("reg_process", hash[:type].to_s)
     assert_equal(plugin_path, hash[:plugin_path])
     assert_equal(plugin_args, hash[:plugin_args])
     assert_equal(plugin_name, hash[:plugin])
