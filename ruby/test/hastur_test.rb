@@ -130,7 +130,7 @@ class HasturApiTest < Test::Unit::TestCase
     Hastur.register_plugin(plugin_name, plugin_path, plugin_args, interval, nil, labels)
     msgs = Hastur.__test_msgs__
     hash = msgs[-1] 
-    assert_equal("reg_process", hash[:type].to_s)
+    assert_equal("reg_pluginv1", hash[:type].to_s)
     assert_equal(plugin_path, hash[:plugin_path])
     assert_equal(plugin_args, hash[:plugin_args])
     assert_equal(plugin_name, hash[:plugin])

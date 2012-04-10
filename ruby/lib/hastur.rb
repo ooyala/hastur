@@ -352,7 +352,7 @@ module Hastur
     unless PLUGIN_INTERVALS.include?(plugin_interval)
       raise "Interval must be one of: #{PLUGIN_INTERVALS.join(', ')}"
     end
-    send_to_udp :type        => :reg_process,
+    send_to_udp :type        => :reg_pluginv1,
                 :plugin_path => plugin_path,
                 :plugin_args => plugin_args,
                 :interval    => plugin_interval,
