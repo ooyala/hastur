@@ -147,7 +147,7 @@ module Hastur
       @__test_msgs__ << m
     else
       u = ::UDPSocket.new
-      u.send MultiJson.encode(m), 0, "127.0.0.1", udp_port
+      u.send MultiJson.dump(m), 0, "127.0.0.1", udp_port
     end
   end
 
