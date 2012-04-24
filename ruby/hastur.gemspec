@@ -19,7 +19,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "mocha"
   s.add_development_dependency "simplecov" if RUBY_VERSION[/^1.9/]
   s.add_development_dependency "rake"
-  s.add_runtime_dependency "multi_json"
+  s.add_runtime_dependency "multi_json", "~>1.3.2"
   s.add_runtime_dependency "chronic"
 
   s.files         = `git ls-files`.split("\n")
