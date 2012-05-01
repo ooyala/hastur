@@ -35,6 +35,15 @@ module Hastur
     __reset_bg_thread__
   end
 
+  #
+  # This should ordinarily only be for testing.  It kills the
+  # background thread so that automatic heartbeats and .every() blocks
+  # don't happen.
+  #
+  def kill_background_thread
+    __kill_bg_thread__
+  end
+
   public
 
   #
@@ -170,15 +179,22 @@ module Hastur
   end
 
   #
+  # Kills the background thread if it's running.
+  #
+  def __kill_bg_thread__
+    if @bg_thread
+      @bg_thread.kill
+      @bg_thread = nil
+    end
+  end
+
+  #
   # Resets Hastur's background thread, removing all scheduled
   # callbacks and resetting the times for all intervals.  This is TEST
   # MODE ONLY and will do TERRIBLE THINGS IF CALLED IN PRODUCTION.
   #
   def __reset_bg_thread__
-    if @bg_thread
-      @bg_thread.kill
-      @bg_thread = nil
-    end
+    __kill_bg_thread__
 
     @last_time ||= Hash.new
     @scheduled_blocks ||= Hash.new
