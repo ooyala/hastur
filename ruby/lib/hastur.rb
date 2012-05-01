@@ -35,6 +35,8 @@ module Hastur
     __reset_bg_thread__
   end
 
+  public
+
   #
   # This should ordinarily only be for testing.  It kills the
   # background thread so that automatic heartbeats and .every() blocks
@@ -43,8 +45,6 @@ module Hastur
   def kill_background_thread
     __kill_bg_thread__
   end
-
-  public
 
   #
   # Best effort to make all timestamps be Hastur timestamps, 64 bit
