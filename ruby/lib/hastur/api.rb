@@ -24,8 +24,6 @@ module Hastur
 
   PLUGIN_INTERVALS = [ :five_minutes, :thirty_minutes, :hourly, :daily, :monthly ]
 
-  private
-
   #
   # Starts a background thread that will execute blocks of code every so often.
   #
@@ -35,8 +33,6 @@ module Hastur
     __reset_bg_thread__
   end
 
-  public
-
   #
   # This should ordinarily only be for testing.  It kills the
   # background thread so that automatic heartbeats and .every() blocks
@@ -44,6 +40,13 @@ module Hastur
   #
   def kill_background_thread
     __kill_bg_thread__
+  end
+
+  #
+  # Returns whether the background thread is currently running.
+  #
+  def background_thread?
+    @bg_thread && !@bg_thread.stop?
   end
 
   #
