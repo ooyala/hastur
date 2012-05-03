@@ -24,6 +24,8 @@ module Hastur
 
   PLUGIN_INTERVALS = [ :five_minutes, :thirty_minutes, :hourly, :daily, :monthly ]
 
+  RegistrationData = {}
+
   #
   # Starts a background thread that will execute blocks of code every so often.
   #
@@ -84,6 +86,30 @@ module Hastur
 
   alias :timestamp :epoch_usec
 
+  #
+  # Attempts to determine the application name.
+  # Consults $0 and Ecology, if present.
+  #
+  def app_name
+    return @app_name if @app_name
+
+    eco = Ecology rescue nil
+    return @app_name = Ecology.application if eco
+
+    @app_name = $0
+  end
+  alias application app_name
+
+  #
+  # Set the application name that Hastur registers as.
+  #
+  # @param [String] new_name The new application name.
+  #
+  def app_name=(new_name)
+    @app_name = new_name
+  end
+  alias application= app_name=
+
   protected
 
   #
@@ -117,19 +143,6 @@ module Hastur
     match  = str.match /(0x\d+)/
     return nil unless match
     match[1].to_i
-  end
-
-  #
-  # Attempts to determine the application name.
-  # Consults $0 and Ecology, if present.
-  #
-  def app_name
-    return @app_name if @app_name
-
-    eco = Ecology rescue nil
-    return @app_name = Ecology.application if eco
-
-    @app_name = $0
   end
 
   #
@@ -247,15 +260,6 @@ module Hastur
   end
 
   #
-  # Set the application name that Hastur registers as.
-  #
-  # @param [String] new_name The new application name.
-  #
-  def app_name=(new_name)
-    @app_name = new_name
-  end
-
-  #
   # Set the UDP port.  Defaults to 8125
   #
   # @param [Fixnum] new_port The new port number.
@@ -351,6 +355,30 @@ module Hastur
                 :attn => [ attn ].flatten,
                 :timestamp => epoch_usec(timestamp),
                 :labels  => default_labels.merge(labels)
+  end
+
+  #
+  # Sends a process registration to Hastur.  This indicates that the
+  # process is currently running, and that heartbeats are intended to
+  # be sent for at least a short time afterward.
+  #
+  # This is also a mechanism for communicating other information to
+  # Hastur about the process, such as the running binary, potentially
+  # loaded libraries or gems and whatever else might be useful in
+  # later analysis or debugging.
+  #
+  # Plugins exist which send additional data in this registration, but
+  # those plugins are generally separate files under lib/hastur and
+  # are not called automatically from this very simple API function.
+  #
+  # @param [String] name The name of the application or best guess
+  # @param [Hash] data The additional data to include with the registration
+  #
+  def register_process(name = app_name, data = {}, timestamp = :now, labels = {})
+    send_to_udp :type      => :reg_process,
+                :data      => data,
+                :timestamp => epoch_usec(timestamp),
+                :labels    => default_labels.merge(labels)
   end
 
   #
