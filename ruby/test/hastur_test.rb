@@ -1,6 +1,5 @@
 require File.join(File.dirname(__FILE__), "test_helper")
 
-require "test/unit"
 require "mocha"
 require "hastur/default"
 require "multi_json"
