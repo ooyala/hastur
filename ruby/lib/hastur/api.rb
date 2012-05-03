@@ -24,7 +24,7 @@ module Hastur
 
   PLUGIN_INTERVALS = [ :five_minutes, :thirty_minutes, :hourly, :daily, :monthly ]
 
-  RegistrationData = {}
+  RegistrationData = []
 
   #
   # Starts a background thread that will execute blocks of code every so often.

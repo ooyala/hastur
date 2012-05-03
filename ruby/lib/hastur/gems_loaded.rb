@@ -17,5 +17,5 @@ loaded_features = $LOADED_FEATURES.
 
 Hastur::RegistrationData << {
   :loaded_gem_versions => loaded_gems,
-  :loaded_features << loaded_features,
+  :loaded_features => loaded_features,
 }
