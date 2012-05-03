@@ -1,5 +1,9 @@
 require "rubygems"
 
+# TODO(noah): Make these methods and create a Hastur::every block to
+# send the loaded gem versions and features back on a regular basis,
+# maybe hourly?
+
 # Gems on load path
 # http://stackoverflow.com/questions/2747990
 gem_versions = Gem.loaded_specs.values.map { |x| [ x.name, x.version] }
