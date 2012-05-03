@@ -5,4 +5,4 @@ if ENV['COVERAGE'] && RUBY_VERSION[/^1.9/]
   SimpleCov.start
 end
 
-require "test/unit"
+require "minitest/autorun"

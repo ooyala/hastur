@@ -12,7 +12,7 @@ class Symbol
   end
 end
 
-class HasturApiTest < Test::Unit::TestCase
+class HasturApiTest < MiniTest::Unit::TestCase
 
   def setup
     Hastur.__test_mode__ = true
@@ -97,7 +97,7 @@ class HasturApiTest < Test::Unit::TestCase
 
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
-    assert_not_nil hash
+    assert hash != nil, "Hash cannot be nil"
     assert_equal("hb_process", hash[:type].to_s)
     assert_equal("process_heartbeat", hash[:name].to_s)
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
@@ -152,7 +152,7 @@ class HasturApiTest < Test::Unit::TestCase
 
     msgs = Hastur.__test_msgs__
     hash = msgs[-1]
-    assert_not_nil hash
+    assert hash != nil, "Hash cannot be nil"
     assert_equal("test_every", hash[:name])
   end
 end
