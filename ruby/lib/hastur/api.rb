@@ -46,9 +46,10 @@ module Hastur
 
   #
   # Returns whether the background thread is currently running.
+  # @todo Debug this.
   #
   def background_thread?
-    @bg_thread && !@bg_thread.stop?
+    @bg_thread && !@bg_thread.alive?
   end
 
   #
