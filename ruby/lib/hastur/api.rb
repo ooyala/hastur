@@ -97,7 +97,7 @@ module Hastur
     eco = Ecology rescue nil
     return @app_name = Ecology.application if eco
 
-    @app_name = $0
+    @app_name = File.basename $0
   end
   alias application app_name
 
@@ -374,6 +374,8 @@ module Hastur
   #
   # @param [String] name The name of the application or best guess
   # @param [Hash] data The additional data to include with the registration
+  # @param timestamp The timestamp as a Fixnum, Float, Time or :now
+  # @param [Hash] labels Any additional data labels to send
   #
   def register_process(name = app_name, data = {}, timestamp = :now, labels = {})
     send_to_udp :type      => :reg_process,
