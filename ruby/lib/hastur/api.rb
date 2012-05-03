@@ -416,7 +416,4 @@ module Hastur
     @mutex ||= Mutex.new
     @mutex.synchronize { @scheduled_blocks[interval] << block }
   end
-
-  # Automatically start the background thread for the process.
-  start_background_thread
 end
