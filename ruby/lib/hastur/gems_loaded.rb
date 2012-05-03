@@ -1,10 +1,12 @@
 require "rubygems"
 
-# Eventually we want a real plugin mechanism for this.
-
 # Gems on load path
 # http://stackoverflow.com/questions/2747990
-loaded_gems = Gem.loaded_specs.valus.map { |x| "#{x.name} #{x.version}" }
+gem_versions = Gem.loaded_specs.values.map { |x| [ x.name, x.version] }
+loaded_gems = {}
+gem_versions.each do |name, version|
+  loaded_gems[name] = version
+end
 
 # http://stackoverflow.com/questions/7190015
 loaded_features = $LOADED_FEATURES.
@@ -13,4 +15,7 @@ loaded_features = $LOADED_FEATURES.
   map { |feature| feature.split("/").last }.
   uniq.sort
 
-# TODO(noah): Include this in process registration
+Hastur::RegistrationData << {
+  :loaded_gem_versions => loaded_gems,
+  :loaded_features << loaded_features,
+}
