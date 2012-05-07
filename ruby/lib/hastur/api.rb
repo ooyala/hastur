@@ -12,6 +12,12 @@ require "thread"
 module Hastur
   extend self
 
+  class << self
+    attr_accessor :mutex
+  end
+
+  Hastur.mutex ||= Mutex.new
+
   SECS_2100       = 4102444800
   MILLI_SECS_2100 = 4102444800000
   MICRO_SECS_2100 = 4102444800000000
@@ -219,11 +225,15 @@ module Hastur
     __kill_bg_thread__
 
     @last_time ||= Hash.new
-    @scheduled_blocks ||= Hash.new
-    # initialize all of the scheduling hashes
-    @intervals.each do |interval|
-      @last_time[interval] = Time.at(0)
-      @scheduled_blocks[interval] = []
+
+    @mutex.synchronize do
+      @scheduled_blocks ||= Hash.new
+
+      # initialize all of the scheduling hashes
+      @intervals.each do |interval|
+        @last_time[interval] = Time.at(0)
+        @scheduled_blocks[interval] = []
+      end
     end
 
     # add a heartbeat background job
@@ -236,16 +246,19 @@ module Hastur
     @bg_thread = Thread.new do
       begin
         loop do
-          # for each of the interval buckets
-          @intervals.each_with_index do |interval, idx|
+          mutex.synchronize do
+            # for each of the interval buckets
             curr_time = Time.now
-            # execute the scheduled items if time is up
-            if curr_time - @last_time[ interval ] >= @interval_values[idx]
-              @last_time[interval] = curr_time
-              @scheduled_blocks[interval].each(&:call)
+            @intervals.each_with_index do |interval, idx|
+              # execute the scheduled items if time is up
+              if curr_time - @last_time[ interval ] >= @interval_values[idx]
+                @last_time[interval] = curr_time
+                @scheduled_blocks[interval].each(&:call)
+              end
             end
           end
 
+          # TODO(noah): increase this time
           sleep 1       # rest
         end
       rescue Exception => e
@@ -463,7 +476,6 @@ module Hastur
     unless @intervals.include?(interval)
       raise "Interval must be one of these: #{@intervals}, you gave #{interval.inspect}"
     end
-    @mutex ||= Mutex.new
-    @mutex.synchronize { @scheduled_blocks[interval] << block }
+    Hastur.mutex.synchronize { @scheduled_blocks[interval] << block }
   end
 end
