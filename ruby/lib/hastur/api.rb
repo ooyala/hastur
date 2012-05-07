@@ -150,6 +150,7 @@ module Hastur
   # Returns whether Hastur is in test mode
   #
   def test_mode
+    STDERR.puts "Test mode is deprecated: 2012/5/7"
     @test_mode || false
   end
 
@@ -171,6 +172,8 @@ module Hastur
     if @__test_mode__
       @__test_msgs__ ||= []
       @__test_msgs__ << m
+    elsif @__delivery_method__
+      @__delivery_method__.call(m)
     else
       u = ::UDPSocket.new
       u.send MultiJson.dump(m), 0, "127.0.0.1", udp_port
@@ -185,6 +188,7 @@ module Hastur
   # @return The list of messages in JSON format
   #
   def __test_msgs__
+    STDERR.puts "Test mode is deprecated: 2012/5/7"
     @__test_msgs__ ||= []
   end
 
@@ -192,7 +196,8 @@ module Hastur
   # Clears the list of buffered messages.
   #
   def __clear_msgs__
-    @__test_msgs__.clear
+    STDERR.puts "Test mode is deprecated: 2012/5/7"
+    @__test_msgs__.clear if @__test_msgs__
   end
 
   #
@@ -250,6 +255,16 @@ module Hastur
   end
 
   #
+  # Set delivery method to the given proc/block.  The block is saved
+  # and called with each message to be sent.  If no block is given or
+  # if this method is not called, the delivery method defaults to
+  # sending over the configured UDP port.
+  #
+  def deliver_with(&block)
+    @__delivery_method__ = block
+  end
+
+  #
   # Switches the behavior of how messages gets handled. If test_mode is on, then 
   # all messages are buffered in memory instead of getting shipped through UDP.
   # Only use this method for testing purposes.
@@ -257,6 +272,7 @@ module Hastur
   # @param [boolean] test_mode True to set test_mode, false to clear it.
   #
   def __test_mode__=(test_mode)
+    STDERR.puts "Test mode is deprecated: 2012/5/7"
     @__test_mode__ = test_mode
   end
 
