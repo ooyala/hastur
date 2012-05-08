@@ -437,17 +437,8 @@ module Hastur
 
   #
   # Sends a process registration to Hastur.  This indicates that the
-  # process is currently running, and that heartbeats are intended to
-  # be sent for at least a short time afterward.
-  #
-  # This is also a mechanism for communicating other information to
-  # Hastur about the process, such as the running binary, potentially
-  # loaded libraries or gems and whatever else might be useful in
-  # later analysis or debugging.
-  #
-  # Plugins exist which send additional data in this registration, but
-  # those plugins are generally separate files under lib/hastur and
-  # are not called automatically from this very simple API function.
+  # process is currently running, and that heartbeats should be sent
+  # for some time afterward.
   #
   # @param [String] name The name of the application or best guess
   # @param [Hash] data The additional data to include with the registration
@@ -470,13 +461,14 @@ module Hastur
   # information about the application as deployed, as run, or as it is
   # currently running.
   #
-  # The labels will use application name and process ID to match this
-  # information with the process registration and similar details.
+  # The default labels contain application name and process ID to
+  # match this information with the process registration and similar
+  # details.
   #
   # Any number of these can be sent as information changes or is
   # superceded.  However, if information changes constantly or needs
   # to be graphed or alerted on, send that separately as a metric or
-  # event.  Process_info messages are freeform and not readily
+  # event.  Info_process messages are freeform and not readily
   # separable or graphable.
   #
   # @param [String] tag The tag or title of this chunk of process info
@@ -484,8 +476,32 @@ module Hastur
   # @param timestamp The timestamp as a Fixnum, Float, Time or :now
   # @param [Hash] labels Any additional data labels to send
   #
-  def process_info(tag, data = {}, timestamp = :now, labels = {})
-    send_to_udp :type      => :process_info,
+  def info_process(tag, data = {}, timestamp = :now, labels = {})
+    send_to_udp :type      => :info_process,
+                :tag       => tag,
+                :data      => data,
+                :timestamp => epoch_usec(timestamp),
+                :labels    => default_labels.merge(labels)
+  end
+
+  #
+  # This sends back freeform data about the agent or host that Hastur
+  # is running on.  Sample uses include what libraries or packages are
+  # installed and available, the total installed memory
+  #
+  # Any number of these can be sent as information changes or is
+  # superceded.  However, if information changes constantly or needs
+  # to be graphed or alerted on, send that separately as a metric or
+  # event.  Info_agent messages are freeform and not readily separable
+  # or graphable.
+  #
+  # @param [String] tag The tag or title of this chunk of process info
+  # @param [Hash] data The detailed data being sent
+  # @param timestamp The timestamp as a Fixnum, Float, Time or :now
+  # @param [Hash] labels Any additional data labels to send
+  #
+  def info_agent(tag, data = {}, timestamp = :now, labels = {})
+    send_to_udp :type      => :info_agent,
                 :tag       => tag,
                 :data      => data,
                 :timestamp => epoch_usec(timestamp),
