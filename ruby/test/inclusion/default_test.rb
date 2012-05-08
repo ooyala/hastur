@@ -10,6 +10,6 @@ class DefaultInclusionTest < MiniTest::Unit::TestCase
     Hastur.expects(:register_process)
     Hastur.expects(:start_background_thread)
 
-    require "hastur/default"
+    require "hastur"
   end
 end

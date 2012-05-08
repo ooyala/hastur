@@ -1,9 +1,5 @@
 require "rubygems"
 
-# TODO(noah): Make these methods and create a Hastur::every block to
-# send the loaded gem versions and features back on a regular basis,
-# maybe hourly?
-
 # Gems on load path
 # http://stackoverflow.com/questions/2747990
 gem_versions = Gem.loaded_specs.values.map { |x| [ x.name, x.version] }
@@ -12,6 +8,8 @@ gem_versions.each do |name, version|
   loaded_gems[name] = version
 end
 
+Hastur.info_process "loaded_gems", loaded_gems
+
 # http://stackoverflow.com/questions/7190015
 loaded_features = $LOADED_FEATURES.
   select { |feature| feature.include? 'gems' }.
@@ -19,7 +17,4 @@ loaded_features = $LOADED_FEATURES.
   map { |feature| feature.split("/").last }.
   uniq.sort
 
-Hastur::RegistrationData << {
-  :loaded_gem_versions => loaded_gems,
-  :loaded_features => loaded_features,
-}
+Hastur.info_process "loaded_features", loaded_features

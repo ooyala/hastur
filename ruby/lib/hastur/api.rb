@@ -12,6 +12,13 @@ require "thread"
 module Hastur
   extend self
 
+  # TODO(noah): Change all instance variables to use Hastur.variable
+  # and add attr_reader/attr_accessor for them if appropriate.
+  # Right now you could use a mix of Hastur.variable and including
+  # the Hastur module and get two full sets of Hastur stuff.
+  # This will only matter if people include Hastur directly,
+  # which we haven't documented as possible.
+
   class << self
     attr_accessor :mutex
   end
@@ -30,13 +37,34 @@ module Hastur
 
   PLUGIN_INTERVALS = [ :five_minutes, :thirty_minutes, :hourly, :daily, :monthly ]
 
-  RegistrationData = []
-
   #
   # Prevents starting a background thread under any circumstances.
   #
   def no_background_thread!
     @prevent_background_thread = true
+  end
+
+  START_OPTS = [
+    :background_thread
+  ]
+
+  #
+  # Start Hastur's background thread and/or do process registration
+  # or neither, according to what options are set.
+  #
+  # @param [Hash] opts The options for features
+  # @option opts [boolean] :background_thread Whether to start a background thread
+  #
+  def start(opts = {})
+    bad_keys = opts.keys - START_OPTS
+    raise "Unknown options to Hastur.start: #{bad_keys.join(", ")}!" unless bad_keys.empty?
+
+    unless @prevent_background_thread ||
+        (opts.has_key?(:background_thread) && !opts[:background_thread])
+      start_background_thread
+    end
+
+    register_process Hastur.app_name, {}
   end
 
   #
@@ -266,7 +294,10 @@ module Hastur
 
           @intervals.each_with_index do |interval, idx|
             to_call = []
-            @mutex.synchronize { to_call = @scheduled_blocks[interval].dup }
+
+            # Don't need to dup this because we never change the old
+            # array, only reassign a new one.
+            @mutex.synchronize { to_call = @scheduled_blocks[interval] }
 
             # execute the scheduled items if time is up
             if curr_time - @last_time[ interval ] >= @interval_values[idx]
@@ -528,6 +559,10 @@ module Hastur
     unless @intervals.include?(interval)
       raise "Interval must be one of these: #{@intervals}, you gave #{interval.inspect}"
     end
+
+    # Don't add to existing array.  += will create a new array.  Then
+    # when we save a reference to the old array and iterate through
+    # it, it won't change midway.
     Hastur.mutex.synchronize { @scheduled_blocks[interval] += [ block ] }
   end
 end

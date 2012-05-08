@@ -1,7 +1,7 @@
 require File.join(File.dirname(__FILE__), "test_helper")
 
 require "mocha"
-require "hastur/default"
+require "hastur"
 require "multi_json"
 
 # This is a hack to allow sorting symbols below in Ruby 1.8.
