@@ -33,9 +33,20 @@ module Hastur
   RegistrationData = []
 
   #
+  # Prevents starting a background thread under any circumstances.
+  #
+  def no_background_thread!
+    @prevent_background_thread = true
+  end
+
+  #
   # Starts a background thread that will execute blocks of code every so often.
   #
   def start_background_thread
+    if @prevent_background_thread
+      raise "You can't start a background thread!  Somebody called .no_background_thread! already."
+    end
+
     @intervals = [:five_secs, :minute, :hour, :day]
     @interval_values = [5, 60, 60*60, 60*60*2 ]
     __reset_bg_thread__
@@ -222,6 +233,10 @@ module Hastur
   # MODE ONLY and will do TERRIBLE THINGS IF CALLED IN PRODUCTION.
   #
   def __reset_bg_thread__
+    if @prevent_background_thread
+      raise "You can't start a background thread!  Somebody called .no_background_thread! already."
+    end
+
     __kill_bg_thread__
 
     @last_time ||= Hash.new
@@ -246,15 +261,17 @@ module Hastur
     @bg_thread = Thread.new do
       begin
         loop do
-          mutex.synchronize do
-            # for each of the interval buckets
-            curr_time = Time.now
-            @intervals.each_with_index do |interval, idx|
-              # execute the scheduled items if time is up
-              if curr_time - @last_time[ interval ] >= @interval_values[idx]
-                @last_time[interval] = curr_time
-                @scheduled_blocks[interval].each(&:call)
-              end
+          # for each of the interval buckets
+          curr_time = Time.now
+
+          @intervals.each_with_index do |interval, idx|
+            to_call = []
+            @mutex.synchronize { to_call = @scheduled_blocks[interval].dup }
+
+            # execute the scheduled items if time is up
+            if curr_time - @last_time[ interval ] >= @interval_values[idx]
+              @last_time[interval] = curr_time
+              @scheduled_blocks[interval].each(&:call)
             end
           end
 
@@ -414,6 +431,37 @@ module Hastur
   end
 
   #
+  # Sends freeform process information to Hastur.  This can be
+  # supplemental information about resources like memory, loaded gems,
+  # Ruby version, files open and whatnot.  It can be additional
+  # configuration or deployment information like environment
+  # (dev/staging/prod), software or component version, etc.  It can be
+  # information about the application as deployed, as run, or as it is
+  # currently running.
+  #
+  # The labels will use application name and process ID to match this
+  # information with the process registration and similar details.
+  #
+  # Any number of these can be sent as information changes or is
+  # superceded.  However, if information changes constantly or needs
+  # to be graphed or alerted on, send that separately as a metric or
+  # event.  Process_info messages are freeform and not readily
+  # separable or graphable.
+  #
+  # @param [String] tag The tag or title of this chunk of process info
+  # @param [Hash] data The detailed data being sent
+  # @param timestamp The timestamp as a Fixnum, Float, Time or :now
+  # @param [Hash] labels Any additional data labels to send
+  #
+  def process_info(tag, data = {}, timestamp = :now, labels = {})
+    send_to_udp :type      => :process_info,
+                :tag       => tag,
+                :data      => data,
+                :timestamp => epoch_usec(timestamp),
+                :labels    => default_labels.merge(labels)
+  end
+
+  #
   # Sends a plugin registration to Hastur.  A plugin is a program on the host machine which
   # can be run to determine status of the machine, an application or anything else interesting.
   #
@@ -473,9 +521,13 @@ module Hastur
   # @yield [] A block which will send Hastur messages, called periodically
   #
   def every(interval, &block)
+    if @prevent_background_thread
+      log("You called .every(), but background threads are specifically prevented.")
+    end
+
     unless @intervals.include?(interval)
       raise "Interval must be one of these: #{@intervals}, you gave #{interval.inspect}"
     end
-    Hastur.mutex.synchronize { @scheduled_blocks[interval] << block }
+    Hastur.mutex.synchronize { @scheduled_blocks[interval] += [ block ] }
   end
 end

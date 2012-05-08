@@ -15,11 +15,17 @@ end
 class HasturApiTest < MiniTest::Unit::TestCase
 
   def setup
-    Hastur.__test_mode__ = true
+    @test_messages = []
+    Hastur.deliver_with { |msg|
+      @test_messages << msg
+    }
+  end
+
+  def test_messages
+    @test_messages
   end
 
   def teardown
-    Hastur.__clear_msgs__
   end
 
   def test_timestamp_nil
@@ -39,7 +45,7 @@ class HasturApiTest < MiniTest::Unit::TestCase
   def test_counter
     curr_time = Time.now.to_i
     Hastur.counter("name", 1, curr_time)
-    msgs = Hastur.__test_msgs__
+    msgs = test_messages
     hash = msgs[-1]
     assert_equal("counter", hash[:type].to_s)
     assert_equal("name", hash[:name])
@@ -53,7 +59,7 @@ class HasturApiTest < MiniTest::Unit::TestCase
   def test_gauge
     curr_time = Time.now.to_i
     Hastur.gauge("name", 9, curr_time)
-    msgs = Hastur.__test_msgs__
+    msgs = test_messages
     hash = msgs[-1]
     assert_equal("gauge", hash[:type].to_s)
     assert_equal("name", hash[:name])
@@ -67,7 +73,7 @@ class HasturApiTest < MiniTest::Unit::TestCase
   def test_mark
     curr_time = Time.now.to_i
     Hastur.mark("myName", nil, curr_time)
-    msgs = Hastur.__test_msgs__
+    msgs = test_messages
     hash = msgs[-1]
     assert_equal("mark", hash[:type].to_s)
     assert_equal("myName", hash[:name])
@@ -79,7 +85,7 @@ class HasturApiTest < MiniTest::Unit::TestCase
 
   def test_heartbeat
     Hastur.heartbeat(nil, nil, nil, :now, :app => "myApp")
-    msgs = Hastur.__test_msgs__
+    msgs = test_messages
     hash = msgs[-1]
     assert_equal("myApp", hash[:labels][:app])
     assert_equal("hb_process", hash[:type].to_s)
@@ -95,7 +101,7 @@ class HasturApiTest < MiniTest::Unit::TestCase
     Time.stubs(:now).returns(tn + 65)
     sleep 2  # Then sleep long enough that it woke up and ran
 
-    msgs = Hastur.__test_msgs__
+    msgs = test_messages
     hash = msgs[-1]
     assert hash != nil, "Hash cannot be nil"
     assert_equal("hb_process", hash[:type].to_s)
@@ -110,7 +116,7 @@ class HasturApiTest < MiniTest::Unit::TestCase
     body = "a\nb\nc\nd\ne\nf"
     attn = [ "backlot", "helios", "analytics-helios-api" ]
     Hastur.event(event_name, subject, body, attn, :now, {:foo => "foo", :bar => "bar"})
-    msgs = Hastur.__test_msgs__
+    msgs = test_messages
     hash = msgs[-1]
     assert_equal("event", hash[:type].to_s)
     assert_equal(event_name, hash[:name])
@@ -127,7 +133,7 @@ class HasturApiTest < MiniTest::Unit::TestCase
     interval = :five_minutes
     labels = {:foo => "foo"}
     Hastur.register_plugin(plugin_name, plugin_path, plugin_args, interval, nil, labels)
-    msgs = Hastur.__test_msgs__
+    msgs = test_messages
     hash = msgs[-1] 
     assert_equal("reg_pluginv1", hash[:type].to_s)
     assert_equal(plugin_path, hash[:plugin_path])
@@ -150,7 +156,7 @@ class HasturApiTest < MiniTest::Unit::TestCase
     Time.stubs(:now).returns(tn + 65)
     sleep 2  # Then sleep long enough that it woke up and ran
 
-    msgs = Hastur.__test_msgs__
+    msgs = test_messages
     hash = msgs[-1]
     assert hash != nil, "Hash cannot be nil"
     assert_equal("test_every", hash[:name])

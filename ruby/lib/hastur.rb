@@ -1,2 +1,3 @@
-raise "You can no longer simply require 'hastur'. " +
-  " There is about a 90% chance that you now want to require hastur/default."
+require "hastur/api"
+
+Hastur.register_process Hastur.app_name, {}
