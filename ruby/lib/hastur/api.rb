@@ -271,7 +271,7 @@ module Hastur
             # execute the scheduled items if time is up
             if curr_time - @last_time[ interval ] >= @interval_values[idx]
               @last_time[interval] = curr_time
-              @scheduled_blocks[interval].each(&:call)
+              to_call.each(&:call)
             end
           end
 
