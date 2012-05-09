@@ -436,6 +436,27 @@ module Hastur
   end
 
   #
+  # Sends a log line to Hastur.  A log line is of relatively low
+  # priority, comparable to stats, and is allowed to be buffered or
+  # batched while higher-priority data is sent first.
+  #
+  # Severity can be included in the data field with the tag
+  # "severity" if desired.
+  #
+  # @param [String] subject The subject or message for this specific log (ex "Got bad input: @#$#@garbage@#$#@")
+  # @param [Hash] data Additional JSON-able data to be sent
+  # @param timestamp The timestamp as a Fixnum, Float, Time or :now
+  # @param [Hash] labels Any additional data labels to send
+  #
+  def log(subject=nil, data={}, timestamp=:now, labels={})
+    send_to_udp :type => :event,
+                :subject => subject,
+                :data => data,
+                :timestamp => epoch_usec(timestamp),
+                :labels => default_labels.merge(labels)
+  end
+
+  #
   # Sends a process registration to Hastur.  This indicates that the
   # process is currently running, and that heartbeats should be sent
   # for some time afterward.
