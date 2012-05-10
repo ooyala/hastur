@@ -231,10 +231,7 @@ module Hastur
       u = ::UDPSocket.new
       u.send MultiJson.dump(m), 0, "127.0.0.1", udp_port
     rescue Errno::EMSGSIZE => e
-      if @no_recurse
-        @no_recurse = false
-        return
-      end
+      return if @no_recurse
       @no_recurse = true
       err = "Message too long to send via Hastur UDP Socket. " +
         "Backtrace: #{e.backtrace.inspect} " + "(Truncated) Message: #{m}"
