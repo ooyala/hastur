@@ -237,8 +237,7 @@ module Hastur
       end
       @no_recurse = true
       err = "Message too long to send via Hastur UDP Socket. " +
-        "Backtrace: #{e.backtrace.inspect} " + "Truncated Message: #{m}"
-      err = err[0...7_168]
+        "Backtrace: #{e.backtrace.inspect} " + "(Truncated) Message: #{m}"
       Hastur.log err
       @no_recurse = false
     end
@@ -447,8 +446,8 @@ module Hastur
   def event(name, subject=nil, body=nil, attn=[], timestamp=:now, labels={})
     send_to_udp :type => :event,
                 :name => name,
-                :subject => subject,
-                :body => body,
+                :subject => subject.to_s[0...3_072],
+                :body => body.to_s[0...3_072],
                 :attn => [ attn ].flatten,
                 :timestamp => epoch_usec(timestamp),
                 :labels  => default_labels.merge(labels)
@@ -469,7 +468,7 @@ module Hastur
   #
   def log(subject=nil, data={}, timestamp=:now, labels={})
     send_to_udp :type => :event,
-                :subject => subject,
+                :subject => subject.to_s[0...7_168],
                 :data => data,
                 :timestamp => epoch_usec(timestamp),
                 :labels => default_labels.merge(labels)
