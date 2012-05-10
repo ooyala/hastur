@@ -464,7 +464,7 @@ module Hastur
   # @param [Hash] labels Any additional data labels to send
   #
   def log(subject=nil, data={}, timestamp=:now, labels={})
-    send_to_udp :type => :event,
+    send_to_udp :type => :log,
                 :subject => subject.to_s[0...7_168],
                 :data => data,
                 :timestamp => epoch_usec(timestamp),

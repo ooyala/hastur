@@ -69,7 +69,7 @@ class HasturApiTest < MiniTest::Unit::TestCase
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
- 
+
   def test_mark
     curr_time = Time.now.to_i
     Hastur.mark("myName", nil, curr_time)
@@ -126,6 +126,32 @@ class HasturApiTest < MiniTest::Unit::TestCase
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
 
+  def test_log
+    subject = "Got a bad\nlog line: '@@\n@@@@@\n@@'"
+    Hastur.log(subject, {:data => "data", :beta => "beta"}, :now, {:foo => "foo", :bar => "bar"})
+    msgs = test_messages
+    hash = msgs[-1]
+    assert_equal("log", hash[:type].to_s)
+    assert_equal(subject, hash[:subject])
+    assert hash[:labels].keys.sort == [:app, :bar, :foo, :pid, :tid],
+      "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
+    assert hash[:data].keys.sort == [:beta, :data],
+      "Wrong keys #{hash[:data].keys.inspect} in data!"
+  end
+
+  def test_long_log
+    subject = "Got a bad\nlog line: '@@\n@@@@@\n@@'" + "*" * 20_000
+    Hastur.log(subject, {:data => "data", :beta => "beta"}, :now, {:foo => "foo", :bar => "bar"})
+    msgs = test_messages
+    hash = msgs[-1]
+    assert_equal("log", hash[:type].to_s)
+    assert_equal(subject[0...7_168], hash[:subject])
+    assert hash[:labels].keys.sort == [:app, :bar, :foo, :pid, :tid],
+      "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
+    assert hash[:data].keys.sort == [:beta, :data],
+      "Wrong keys #{hash[:data].keys.inspect} in data!"
+  end
+
   def test_register_plugin
     plugin_path = "plugin_path"
     plugin_args = "plugin_args"
@@ -134,7 +160,7 @@ class HasturApiTest < MiniTest::Unit::TestCase
     labels = {:foo => "foo"}
     Hastur.register_plugin(plugin_name, plugin_path, plugin_args, interval, nil, labels)
     msgs = test_messages
-    hash = msgs[-1] 
+    hash = msgs[-1]
     assert_equal("reg_pluginv1", hash[:type].to_s)
     assert_equal(plugin_path, hash[:plugin_path])
     assert_equal(plugin_args, hash[:plugin_args])
