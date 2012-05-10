@@ -220,8 +220,27 @@ module Hastur
     elsif @__delivery_method__
       @__delivery_method__.call(m)
     else
+      __send_to_udp__(m)
+    end
+  end
+
+  private
+
+  def __send_to_udp__(m)
+    begin
       u = ::UDPSocket.new
       u.send MultiJson.dump(m), 0, "127.0.0.1", udp_port
+    rescue Errno::EMSGSIZE => e
+      if @no_recurse
+        @no_recurse = false
+        return
+      end
+      @no_recurse = true
+      err = "Message too long to send via Hastur UDP Socket. " +
+        "Backtrace: #{e.backtrace.inspect} " + "Truncated Message: #{m}"
+      err = err[0...7_168]
+      Hastur.log err
+      @no_recurse = false
     end
   end
 
@@ -326,7 +345,7 @@ module Hastur
   end
 
   #
-  # Switches the behavior of how messages gets handled. If test_mode is on, then 
+  # Switches the behavior of how messages gets handled. If test_mode is on, then
   # all messages are buffered in memory instead of getting shipped through UDP.
   # Only use this method for testing purposes.
   #
