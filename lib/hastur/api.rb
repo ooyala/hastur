@@ -238,6 +238,14 @@ module Hastur
         "Backtrace: #{e.backtrace.inspect} " + "(Truncated) Message: #{mj}"
       Hastur.log err
       @no_recurse = false
+    rescue Exception => e
+      return if @no_recurse
+      @no_recurse = true
+      err = "Exception sending via Hastur UDP Socket. " + "Exception: #{e.message} " +
+        "Backtrace: #{e.backtrace.inspect} " + "(Truncated) Message: #{mj}"
+      Hastur.log err
+      @no_recurse = false
+
     end
   end
 
