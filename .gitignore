@@ -1,1 +1,8 @@
 *.swp
+*.gem
+.bundle
+Gemfile.lock
+pkg/*
+doc/*
+yardoc/*
+coverage
