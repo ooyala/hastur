@@ -333,11 +333,8 @@ module Hastur
     end
 
     # add a heartbeat background job
-    unless @process_heartbeat_added
-      every :minute do
-        heartbeat("process_heartbeat")
-      end
-      @process_heartbeat_added = true
+    every :minute do
+      heartbeat("process_heartbeat")
     end
 
     # define a thread that will schedule and execute all of the background jobs.

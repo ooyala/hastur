@@ -94,7 +94,8 @@ class HasturApiTest < MiniTest::Unit::TestCase
   end
 
   def test_process_heartbeat
-    Hastur.__reset_bg_thread__
+    Hastur.kill_background_thread
+    Hastur.start_background_thread
 
     # Make the "every" background thread think it's later than it is
     tn = Time.now
@@ -171,7 +172,8 @@ class HasturApiTest < MiniTest::Unit::TestCase
   end
 
   def test_every
-    Hastur.__reset_bg_thread__
+    Hastur.kill_background_thread
+    Hastur.start_background_thread
 
     Hastur.every :minute do
       Hastur.mark("test_every")
