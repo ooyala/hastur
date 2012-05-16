@@ -86,7 +86,8 @@ module Hastur
   #
   # This should ordinarily only be for testing.  It kills the
   # background thread so that automatic heartbeats and .every() blocks
-  # don't happen.
+  # don't happen.  If you restart the background thread, all your
+  # .every() blocks go away, but the process heartbeat is restarted.
   #
   def kill_background_thread
     __kill_bg_thread__
