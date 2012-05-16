@@ -64,6 +64,7 @@ module Hastur
       start_background_thread
     end
 
+    @process_registration_done = true
     register_process Hastur.app_name, {}
   end
 
@@ -155,7 +156,16 @@ module Hastur
   # @param [String] new_name The new application name.
   #
   def app_name=(new_name)
+    old_name = @app_name
+
     @app_name = new_name
+
+    if @process_registration_done
+      err_str = "You changed the application name from #{old_name} to " +
+        "#{new_name} after the process was registered!"
+      STDERR.puts err_str
+      Hastur.log err_str
+    end
   end
   alias application= app_name=
 
@@ -257,10 +267,13 @@ module Hastur
     @udp_port || 8125
   end
 
+  private
+
   #
   # Sends a message unmolested to the HASTUR_UDP_PORT on 127.0.0.1
   #
   # @param m The message to send
+  # @todo Combine this with __send_to_udp__
   #
   def send_to_udp(m)
     if @__test_mode__
@@ -272,8 +285,6 @@ module Hastur
       __send_to_udp__(m)
     end
   end
-
-  private
 
   def __send_to_udp__(m)
     begin
@@ -317,6 +328,8 @@ module Hastur
     STDERR.puts "Test mode is deprecated: 2012/5/7"
     @__test_msgs__.clear if @__test_msgs__
   end
+
+  private
 
   #
   # Kills the background thread if it's running.
@@ -387,6 +400,8 @@ module Hastur
       end
     end
   end
+
+  public
 
   #
   # Set delivery method to the given proc/block.  The block is saved
