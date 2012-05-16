@@ -251,14 +251,6 @@ module Hastur
   end
 
   #
-  # Returns whether Hastur is in test mode
-  #
-  def test_mode
-    STDERR.puts "Test mode is deprecated: 2012/5/7"
-    @test_mode || false
-  end
-
-  #
   # Get the UDP port.
   #
   # @return The UDP port.  Defaults to 8125.
@@ -276,10 +268,7 @@ module Hastur
   # @todo Combine this with __send_to_udp__
   #
   def send_to_udp(m)
-    if @__test_mode__
-      @__test_msgs__ ||= []
-      @__test_msgs__ << m
-    elsif @__delivery_method__
+    if @__delivery_method__
       @__delivery_method__.call(m)
     else
       __send_to_udp__(m)
@@ -308,28 +297,6 @@ module Hastur
 
     end
   end
-
-  public
-
-  #
-  # The list of messages that were queued up when in test mode.
-  #
-  # @return The list of messages in JSON format
-  #
-  def __test_msgs__
-    STDERR.puts "Test mode is deprecated: 2012/5/7"
-    @__test_msgs__ ||= []
-  end
-
-  #
-  # Clears the list of buffered messages.
-  #
-  def __clear_msgs__
-    STDERR.puts "Test mode is deprecated: 2012/5/7"
-    @__test_msgs__.clear if @__test_msgs__
-  end
-
-  private
 
   #
   # Kills the background thread if it's running.
@@ -366,8 +333,11 @@ module Hastur
     end
 
     # add a heartbeat background job
-    every :minute do
-      heartbeat("process_heartbeat")
+    unless @process_heartbeat_added
+      every :minute do
+        heartbeat("process_heartbeat")
+      end
+      @process_heartbeat_added = true
     end
 
     # define a thread that will schedule and execute all of the background jobs.
@@ -411,18 +381,6 @@ module Hastur
   #
   def deliver_with(&block)
     @__delivery_method__ = block
-  end
-
-  #
-  # Switches the behavior of how messages gets handled. If test_mode is on, then
-  # all messages are buffered in memory instead of getting shipped through UDP.
-  # Only use this method for testing purposes.
-  #
-  # @param [boolean] test_mode True to set test_mode, false to clear it.
-  #
-  def __test_mode__=(test_mode)
-    STDERR.puts "Test mode is deprecated: 2012/5/7"
-    @__test_mode__ = test_mode
   end
 
   #
