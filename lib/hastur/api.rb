@@ -75,6 +75,8 @@ module Hastur
       raise "You can't start a background thread!  Somebody called .no_background_thread! already."
     end
 
+    return if @bg_thread
+
     @intervals = [:five_secs, :minute, :hour, :day]
     @interval_values = [5, 60, 60*60, 60*60*2 ]
     __reset_bg_thread__
@@ -135,6 +137,7 @@ module Hastur
   #
   # Attempts to determine the application name.
   # Consults $0 and Ecology, if present.
+  # @return [String] The application name, or best guess at same
   #
   def app_name
     return @app_name if @app_name
@@ -155,6 +158,52 @@ module Hastur
     @app_name = new_name
   end
   alias application= app_name=
+
+  #
+  # Add default labels which will be sent back with every Hastur
+  # message sent by this process.  The labels will be sent back with
+  # the same constant value each time that is specified in the labels
+  # hash.
+  #
+  # This is a useful way to send back information that won't change
+  # during the run, or that will change only occasionally like
+  # resource usage, server information, deploy environment, etc.  The
+  # same kind of information can be sent back using info_process(), so
+  # consider which way makes more sense for your case.
+  #
+  # @param [Hash] new_default_labels A hash of new labels to send.
+  #
+  def add_default_labels(new_default_labels)
+    @default_labels ||= {}
+
+    @default_labels.merge!
+  end
+
+  #
+  # Remove default labels which will be sent back with every Hastur
+  # message sent by this process.  This cannot remove the three
+  # automatic defaults (application, pid, tid).  Keys that have not
+  # been added cannot be removed, and so will be silently ignored (no
+  # exception will be raised).
+  #
+  # @param [Array<String> or multiple strings] default_label_keys Keys to stop sending
+  #
+  def remove_default_label_names(*default_label_keys)
+    keys_to_remove = default_label_keys.flatten
+
+    keys_to_remove.each { |key| @default_labels.delete(key) }
+  end
+
+  #
+  # Reset the default labels which will be sent back with every Hastur
+  # message sent by this process.  After this, only the automatic
+  # default labels (process ID, thread ID, application name) will be
+  # sent, plus of course the ones specified for the specific Hastur
+  # message call.
+  #
+  def reset_default_labels
+    @default_labels = {}
+  end
 
   protected
 
