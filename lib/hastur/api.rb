@@ -219,6 +219,24 @@ module Hastur
   protected
 
   #
+  # Sends a compound data structure to Hastur. This is protected and for
+  # internal use only at the moment and is used for system statistics
+  # that are automatically collected by Hastur Agent.
+  #
+  # @param [String] name The counter name
+  # @param [Hash,Array] value compound value
+  # @param timestamp The timestamp as a Fixnum, Float, Time or :now
+  # @param [Hash] labels Any additional data labels to send
+  #
+  def compound(name, value=[], timestamp=:now, labels={})
+    send_to_udp :type      => :compound,
+                :name      => name,
+                :value     => value,
+                :timestamp => epoch_usec(timestamp),
+                :labels    => default_labels.merge(labels)
+  end
+
+  #
   # Returns the default labels for any UDP message that ships.
   #
   def default_labels
