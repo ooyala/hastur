@@ -77,10 +77,21 @@ class HasturApiTest < MiniTest::Unit::TestCase
     hash = msgs[-1]
     assert_equal("mark", hash[:type].to_s)
     assert_equal("myName", hash[:name])
-    assert_equal("mark", hash[:type].to_s)
     assert_equal(curr_time*1000000, hash[:timestamp])
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
+  end
+
+  def test_compound
+    curr_time = Time.now.to_i
+    # compound is currently protected as it is not for public consumption
+    Hastur.send :compound, "myName", [1, 2, 3], curr_time
+    msgs = test_messages
+    hash = msgs[-1]
+    assert_equal("compound", hash[:type].to_s)
+    assert_equal("myName", hash[:name])
+    assert_equal(curr_time*1000000, hash[:timestamp])
+    assert_equal([1, 2, 3], hash[:value])
   end
 
   def test_heartbeat
