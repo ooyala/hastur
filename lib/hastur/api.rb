@@ -647,7 +647,7 @@ module Hastur
   # Runs a block of code periodically every interval.
   # Use this method to report statistics at a fixed time interval.
   #
-  # @param [Symbol] every How often to run.  One of [:five_secs, :minute, :hour, :day]
+  # @param [Symbol] interval How often to run.  One of [:five_secs, :minute, :hour, :day]
   # @yield [] A block which will send Hastur messages, called periodically
   #
   def every(interval, &block)
