@@ -3,6 +3,8 @@ require "socket"
 require "date"
 require "thread"
 
+require "hastur/version"
+
 #
 # Hastur API gem that allows services/apps to easily publish
 # correct Hastur-commands to their local machine's UDP sockets.
@@ -378,7 +380,7 @@ module Hastur
             end
           end
 
-          # TODO(noah): increase this time
+          # TODO(noah): increase this time?
           sleep 1       # rest
         end
       rescue Exception => e
@@ -530,7 +532,7 @@ module Hastur
   #
   def register_process(name = app_name, data = {}, timestamp = :now, labels = {})
     send_to_udp :type      => :reg_process,
-                :data      => data,
+                :data      => { "language" => "ruby", "version" => Hastur::VERSION }.merge(data),
                 :timestamp => epoch_usec(timestamp),
                 :labels    => default_labels.merge(labels)
   end
