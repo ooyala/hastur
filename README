@@ -51,7 +51,7 @@ Mechanism
 ---------
 
 Your messages are automatically timestamped in microseconds, labeled
-and converted to a JSON structure for storage.
+and converted to a JSON structure for transport and storage.
 
 Hastur sends the JSON over a local UDP socket to a local "Hastur
 Agent", a daemon that forwards your data to the shared Hastur servers.
@@ -103,9 +103,9 @@ trigger interface.
 timestamp.  For instance:
 
   ts = Hastur.timestamp
-  Hastur.gauge "my.thing.latency1", ts
-  Hastur.gauge "my.thing.latency2", ts
-  Hastur.counter "my.thing.counter371", ts
+  Hastur.gauge "my.thing.latency1", val1, ts
+  Hastur.gauge "my.thing.latency2", val2, ts
+  Hastur.counter "my.thing.counter371", 1, ts
 
 This makes it easy to query all events with exactly that timestamp
 and the same prefix ("my.thing.*"), and otherwise to make sure they're
