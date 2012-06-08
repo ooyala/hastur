@@ -247,6 +247,22 @@ module Hastur
     @intervals = nil
     @interval_values = nil
     @default_labels = nil
+    @message_name_prefix = nil
+  end
+
+  #
+  # Set a message-name prefix for all message types that have names.
+  # It will be prepended automatically for those message types' names.
+  # A nil value will be treated as the empty string.  Plugin names
+  # don't count as message names for these purposes, and will not be
+  # prefixed.
+  #
+  def message_name_prefix=(value)
+    @message_name_prefix = value
+  end
+
+  def message_name_prefix
+    @message_name_prefix || ""
   end
 
   protected
@@ -263,7 +279,7 @@ module Hastur
   #
   def compound(name, value=[], timestamp=:now, labels={})
     send_to_udp :type      => :compound,
-                :name      => name,
+                :name      => message_name_prefix + (name || ""),
                 :value     => value,
                 :timestamp => epoch_usec(timestamp),
                 :labels    => default_labels.merge(labels)
@@ -459,7 +475,7 @@ module Hastur
   #
   def mark(name, value = nil, timestamp=:now, labels={})
     send_to_udp :type      => :mark,
-                :name      => name,
+                :name      => message_name_prefix + (name || ""),
                 :value     => value,
                 :timestamp => epoch_usec(timestamp),
                 :labels    => default_labels.merge(labels)
@@ -477,7 +493,7 @@ module Hastur
   #
   def counter(name, value=1, timestamp=:now, labels={})
     send_to_udp :type      => :counter,
-                :name      => name,
+                :name      => message_name_prefix + (name || ""),
                 :value     => value,
                 :timestamp => epoch_usec(timestamp),
                 :labels    => default_labels.merge(labels)
@@ -495,7 +511,7 @@ module Hastur
   #
   def gauge(name, value, timestamp=:now, labels={})
     send_to_udp :type      => :gauge,
-                :name      => name,
+                :name      => message_name_prefix + (name || ""),
                 :value     => value,
                 :timestamp => epoch_usec(timestamp),
                 :labels    => default_labels.merge(labels)
@@ -522,7 +538,7 @@ module Hastur
   #
   def event(name, subject=nil, body=nil, attn=[], timestamp=:now, labels={})
     send_to_udp :type => :event,
-                :name => name,
+                :name => message_name_prefix + (name || ""),
                 :subject => subject.to_s[0...3_072],
                 :body => body.to_s[0...3_072],
                 :attn => [ attn ].flatten,
@@ -669,7 +685,7 @@ module Hastur
   # @param [Hash] labels Any additional data labels to send
   #
   def heartbeat(name="application.heartbeat", value=nil, timeout = nil, timestamp=:now, labels={})
-    send_to_udp :name => name,
+    send_to_udp :name => message_name_prefix + (name || ""),
                 :type => :hb_process,
                 :value => value,
                 :timestamp => epoch_usec(timestamp),
