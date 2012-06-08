@@ -139,12 +139,24 @@ module Hastur
   alias :timestamp :epoch_usec
 
   #
-  # Attempts to determine the application name.
-  # Consults $0 and Ecology, if present.
+  # Attempts to determine the application name, or uses an
+  # application-provided one, if set.  In order, Hastur checks:
+  #
+  # * User-provided app name via Hastur.app_name=
+  # * HASTUR_APP_NAME environment variable
+  # * ::HASTUR_APP_NAME Ruby constant
+  # * Ecology.application, if set
+  # * File.basename($0)
+  #
   # @return [String] The application name, or best guess at same
   #
   def app_name
     return @app_name if @app_name
+
+    return @app_name = ENV['HASTUR_APP_NAME'] if ENV['HASTUR_APP_NAME']
+
+    top_level = ::HASTUR_APP_NAME rescue nil
+    return @app_name = top_level if top_level
 
     eco = Ecology rescue nil
     return @app_name = Ecology.application if eco
@@ -216,6 +228,25 @@ module Hastur
   #
   def reset_default_labels
     @default_labels = {}
+  end
+
+  #
+  # Reset Hastur module for tests.  This removes all settings and
+  # kills the background thread, resetting Hastur to its initial
+  # pre-start condition.
+  #
+  def reset
+    __kill_bg_thread__
+    @app_name = nil
+    @prevent_background_thread = nil
+    @process_registration_done = nil
+    @udp_port = nil
+    @__delivery_method__ = nil
+    @scheduled_blocks = nil
+    @last_time = nil
+    @intervals = nil
+    @interval_values = nil
+    @default_labels = nil
   end
 
   protected
@@ -343,7 +374,7 @@ module Hastur
 
     @last_time ||= Hash.new
 
-    @mutex.synchronize do
+    Hastur.mutex.synchronize do
       @scheduled_blocks ||= Hash.new
 
       # initialize all of the scheduling hashes
@@ -371,7 +402,7 @@ module Hastur
 
             # Don't need to dup this because we never change the old
             # array, only reassign a new one.
-            @mutex.synchronize { to_call = @scheduled_blocks[interval] }
+            Hastur.mutex.synchronize { to_call = @scheduled_blocks[interval] }
 
             # execute the scheduled items if time is up
             if curr_time - @last_time[ interval ] >= @interval_values[idx]

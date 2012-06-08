@@ -200,4 +200,5 @@ class HasturApiTest < MiniTest::Unit::TestCase
     assert hash != nil, "Hash cannot be nil"
     assert_equal("test_every", hash[:name])
   end
+
 end
