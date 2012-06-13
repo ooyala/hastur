@@ -1,0 +1,4 @@
+source :rubygems
+
+gem "goliath"
+gem "em-http-request"
