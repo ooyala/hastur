@@ -36,54 +36,53 @@ class GetProxy < Goliath::API
 
     # Hastur was designed to be queried ground-up using labels. Liberal use
     # of labels is recommended. We add labels as we need them.
-    labels = {}
+    labels = { :host => [uri.scheme, uri.name, uri.host].join('.') }
 
     case http.response_header.status
     when 300..307
       # Marks are interesting, but non-critical points. Value defaults to nil,
       # timestamp defaults to 'now'.
       Hastur.mark(
-        "test.proxy.3xx.#{[uri.scheme, uri.name, uri.host].join('.')}", # name
-        nil,                                                            # value
-        start,                                                          # timestamp
-        :status => :moved                                               # label
+        "test.proxy.3xx", # name
+        nil,              # value
+        start,            # timestamp
+        :status => :moved # label
       )
-      labels.merge! :status => "3xx"
+      labels[:status] = "3xx"
     when 400..417
       # Log is used for low priority data that will be buffered and batched by
       # Hastur. Severity is optional and irrelevant to delivery.
       Hastur.log(
-        "test.proxy.4xx.#{[uri.scheme, uri.name, uri.host].join('.')}", # name
-        {                                                               # data
+        "test.proxy.4xx",      # name
+        {                      # data
           :path => uri.path,
           :query => uri.query,
         },
-        start                                                           # timestamp
+        start                  # timestamp
       )
-      labels.merge! :status => "4xx"
+      labels[:status] = "4xx"
     when 500.505
       # Event is serious business. Hastur will punish the little elves crankin
       # in it bowels mercilessly to get this out and about ASAP.
       Hastur.event(
-        "test.proxy.5xx.#{[uri.scheme, uri.name, uri.host].join('.')}", # name
-        "Internal Server Error",                                        # subject
-        nil,                                                            # body
-        ["devnull@ooyala.com"],                                         # attn
-        start,                                                          # timestamp
-        :path => uri.path,                                              # labels
-        :query => uri.query                                             # labels
+        "test.proxy.5xx",        # name
+        "Internal Server Error", # subject
+        nil,                     # body
+        ["devnull@ooyala.com"],  # attn
+        start,                   # timestamp
+        :path => uri.path,       # labels
+        :query => uri.query      # labels
       )
-      labels.merge! :status => "5xx"
-      labels.merge! :path => uri.path
+      labels[:status] = "5xx"
     end
 
     # Gauges are used to track values.
     Hastur.gauge(
       # Use . to separate namespaces in Hastur.
-      "test.proxy.ttr.#{[uri.scheme, uri.name, uri.host].join('.')}", # name
-      done.to_f - start.to_f,                                         # value
-      start,                                                          # timestamp
-      labels                                                          # labels
+      "test.proxy.latencies.ttr", # name
+      done.to_f - start.to_f,     # value
+      start,                      # timestamp
+      labels                      # labels
     )
 
     [http.response_header.status, http.response_header, http.response]
