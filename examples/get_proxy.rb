@@ -28,15 +28,18 @@ class GetProxy < Goliath::API
 
   def response(env)
     url = "#{@backend}#{env['REQUEST_PATH']}"
-    start = Time.now
+    start = Hastur.timestamp
     http = EM::HttpRequest.new(url).get :query => params
-    done = Time.now
+    done = Hastur.timestamp
 
     uri = URI.parse url
 
     # Hastur was designed to be queried ground-up using labels. Liberal use
     # of labels is recommended. We add labels as we need them.
-    labels = { :host => [uri.scheme, uri.name, uri.host].join('.') }
+    labels = { :scheme => uri.scheme,
+               :host   => uri.host,
+               :port   => uri.port
+    }
 
     case http.response_header.status
     when 300..307
