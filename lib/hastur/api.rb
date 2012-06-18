@@ -81,7 +81,7 @@ module Hastur
     return if @bg_thread
 
     @intervals = [:five_secs, :minute, :hour, :day]
-    @interval_values = [5, 60, 60*60, 60*60*2 ]
+    @interval_values = [5, 60, 60*60, 60*60*24 ]
     __reset_bg_thread__
   end
 
