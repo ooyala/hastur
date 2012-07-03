@@ -693,6 +693,21 @@ module Hastur
   end
 
   #
+  # Run the block and report its runtime back to Hastur as a gauge.
+  #
+  # @param [String] name The name of the gauge.
+  # @example
+  #   Hastur.time "foo.bar" { fib 10 }
+  #   Hastur.time "foo.bar", Time.now, :from => "over there" do fib(100) end
+  #
+  def time(name, timestamp=nil, labels={})
+    started = Time.now
+    yield
+    ended = Time.now
+    gauge name, ended - started, timestamp || started, labels
+  end
+
+  #
   # Runs a block of code periodically every interval.
   # Use this method to report statistics at a fixed time interval.
   #

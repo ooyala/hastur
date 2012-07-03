@@ -182,6 +182,20 @@ class HasturApiTest < MiniTest::Unit::TestCase
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
 
+  def test_time
+    name = "example.block.time"
+    Hastur.time name do Math.sqrt(100) end
+    msg = test_messages.pop
+    assert_equal name, msg[:name]
+    assert_kind_of Numeric, msg[:value]
+    assert msg[:value].between?(0.0, 1.0)
+    t = Time.now
+    Hastur.time name, t, :foo => "bar" do Math.sqrt(100) end
+    msg = test_messages.pop
+    assert msg[:labels].keys.sort == [:app, :foo, :pid, :tid]
+    assert_equal "bar", msg[:labels][:foo]
+  end
+
   def test_every
     Hastur.kill_background_thread
     Hastur.start_background_thread
