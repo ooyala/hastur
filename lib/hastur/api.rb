@@ -702,9 +702,10 @@ module Hastur
   #
   def time(name, timestamp=nil, labels={})
     started = Time.now
-    yield
+    ret = yield
     ended = Time.now
     gauge name, ended - started, timestamp || started, labels
+    ret
   end
 
   #

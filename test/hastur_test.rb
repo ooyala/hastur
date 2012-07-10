@@ -194,6 +194,13 @@ class HasturApiTest < MiniTest::Unit::TestCase
     msg = test_messages.pop
     assert msg[:labels].keys.sort == [:app, :foo, :pid, :tid]
     assert_equal "bar", msg[:labels][:foo]
+
+    # make sure it's returning the return of the block
+    val = Hastur.time name do
+      1.upto(10).map { 100 }
+    end
+    assert_kind_of Array, val
+    assert_equal 10, val.length
   end
 
   def test_every
