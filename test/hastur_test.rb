@@ -164,24 +164,6 @@ class HasturApiTest < MiniTest::Unit::TestCase
       "Wrong keys #{hash[:data].keys.inspect} in data!"
   end
 
-  def test_register_plugin
-    plugin_path = "plugin_path"
-    plugin_args = "plugin_args"
-    plugin_name = "plugin_name"
-    interval = :five_minutes
-    labels = {:foo => "foo"}
-    Hastur.register_plugin(plugin_name, plugin_path, plugin_args, interval, nil, labels)
-    msgs = test_messages
-    hash = msgs[-1]
-    assert_equal("reg_pluginv1", hash[:type].to_s)
-    assert_equal(plugin_path, hash[:plugin_path])
-    assert_equal(plugin_args, hash[:plugin_args])
-    assert_equal(plugin_name, hash[:plugin])
-    assert_equal(interval, hash[:interval])
-    assert hash[:labels].keys.sort == [:app, :foo, :pid, :tid],
-      "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
-  end
-
   def test_time
     name = "example.block.time"
     Hastur.time name do Math.sqrt(100) end

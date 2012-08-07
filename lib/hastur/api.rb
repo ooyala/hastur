@@ -641,33 +641,6 @@ module Hastur
   end
 
   #
-  # Sends a plugin registration to Hastur.  A plugin is a program on the host machine which
-  # can be run to determine status of the machine, an application or anything else interesting.
-  #
-  # This registration tells Hastur to begin scheduling runs
-  # of the plugin and report back on the resulting status codes or crashes.
-  #
-  # @param [String] name The name of the plugin, and of the heartbeat sent back
-  # @param [String] plugin_path The path on the local file system to this plugin executable
-  # @param [Array] plugin_args The array of arguments to pass to the plugin executable
-  # @param [Symbol] plugin_interval The interval to run the plugin.  The scheduling will be slightly approximate.  One of:  PLUGIN_INTERVALS
-  # @param timestamp The timestamp as a Fixnum, Float, Time or :now
-  # @param [Hash] labels Any additional data labels to send
-  #
-  def register_plugin(name, plugin_path, plugin_args, plugin_interval, timestamp=:now, labels={})
-    unless PLUGIN_INTERVALS.include?(plugin_interval)
-      raise "Interval must be one of: #{PLUGIN_INTERVALS.join(', ')}"
-    end
-    send_to_udp :type        => :reg_pluginv1,
-                :plugin_path => plugin_path,
-                :plugin_args => plugin_args,
-                :interval    => plugin_interval,
-                :plugin      => name,
-                :timestamp   => epoch_usec(timestamp),
-                :labels      => default_labels.merge(labels)
-  end
-
-  #
   # Sends a heartbeat to Hastur.  A heartbeat is a periodic
   # message which indicates that a host, application or
   # service is currently running.  It is higher priority
