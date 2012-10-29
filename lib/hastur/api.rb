@@ -241,6 +241,7 @@ module Hastur
     @prevent_background_thread = nil
     @process_registration_done = nil
     @udp_port = nil
+    @udp_address = nil
     @__delivery_method__ = nil
     @scheduled_blocks = nil
     @last_time = nil
@@ -319,12 +320,25 @@ module Hastur
   end
 
   #
-  # Get the UDP port.
+  # Get the UDP port for the default send
+  # method.  Note that custom delivery methods
+  # ignore this completely.
   #
   # @return The UDP port.  Defaults to 8125.
   #
   def udp_port
     @udp_port || 8125
+  end
+
+  #
+  # Get the UDP address for the default send
+  # method.  Note that custom delivery methods
+  # ignore this completely.
+  #
+  # @return The UDP address.  Defaults to "127.0.0.1".
+  #
+  def udp_address
+    @udp_address || "127.0.0.1"
   end
 
   private
@@ -347,7 +361,7 @@ module Hastur
     begin
       u = ::UDPSocket.new
       mj = MultiJson.dump m
-      u.send mj, 0, "127.0.0.1", udp_port
+      u.send mj, 0, udp_address, udp_port
     rescue Errno::EMSGSIZE => e
       return if @no_recurse
       @no_recurse = true
@@ -449,12 +463,21 @@ module Hastur
   end
 
   #
-  # Set the UDP port.  Defaults to 8125
+  # Set the UDP port.  Defaults to 8125.
   #
   # @param [Fixnum] new_port The new port number.
   #
   def udp_port=(new_port)
     @udp_port = new_port
+  end
+
+  #
+  # Set the UDP address.  Defaults to "127.0.0.1".
+  #
+  # @param [Fixnum] new_address The new address.
+  #
+  def udp_port=(new_address)
+    @udp_port = new_address
   end
 
   #
