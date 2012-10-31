@@ -602,7 +602,11 @@ module Hastur
   #
   def register_process(name = app_name, data = {}, timestamp = :now, labels = {})
     send_to_udp :type      => :reg_process,
-                :data      => { "language" => "ruby", "version" => Hastur::VERSION }.merge(data),
+                :data      => {
+                                "name" => name,
+                                "language" => "ruby",
+                                "version" => Hastur::VERSION
+                              }.merge(data),
                 :timestamp => epoch_usec(timestamp),
                 :labels    => default_labels.merge(labels)
   end
