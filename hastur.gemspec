@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
   s.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
 
   s.add_development_dependency "yard"
+  s.add_development_dependency "redcarpet"
   s.add_development_dependency "mocha"
   s.add_development_dependency "minitest"
   s.add_development_dependency "simplecov" if RUBY_VERSION[/^1.9/]
