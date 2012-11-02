@@ -20,7 +20,7 @@ Examples:
 Options:
 EOS
   opt :time,     "Timestamp to send",       :type => String
-  opt :label,    "Labels to send",          :type => :strings,           :multi => true
+  opt :labels,   "Labels to send",          :type => :strings,           :multi => true
   opt :print,    "Print the call args",     :type => :boolean,           :default => false
 end
 
@@ -113,8 +113,8 @@ args << time
 
 # Labels is last
 labels = {}
-if opts[:label]
-  opts[:label].flatten.each do |item|
+if opts[:labels]
+  opts[:labels].flatten.each do |item|
     name, value = item.split("=")
     labels[name] = try_eval(value, "label value")
   end
