@@ -25,7 +25,7 @@ EOS
 end
 
 Trollop::die "you must give a type!" if ARGV.empty?
-Type = ARGV.shift.downcase
+type = ARGV.shift.downcase
 
 # Args:
 #   - mark: name, value, timestamp, labels
@@ -53,55 +53,47 @@ TYPES = {
     :timeout => :maybe,
   }
 }
+TYPE = TYPES[type]
+Trollop::die "Type must be one of: #{TYPES.keys.join(', ')}" unless TYPE
 
-Trollop::die "Type must be one of: #{TYPES.keys.join(', ')}" unless TYPES[Type]
-
 #
-# This method tries to evaluate a string as Ruby and, if it can't,
-# dies saying so.
+# Convert a value to an appropriate Ruby value (either Fixnum, Float, or String).
 #
-# @param [String] value_string The code to evaluate
-# @param [String] description What the value will be used as
-# @return The result of the eval
-# @raise TrollopException Your string didn't parse or raised an exception
+# @param [String] value_string The string value to convert
+# @return The resulting value
 #
-def try_eval(value_string, description)
-  begin
-    value = eval(value_string)
-  rescue Exception
-    Trollop::die "Your #{description} (#{value_string}) didn't run as Ruby: #{$!.message}"
+def convert_to_ruby_value(value_string)
+  case value_string
+  when /^-?\d*\.\d+$/ then value_string.to_f
+  when /^-?\d+$/ then value_string.to_f
+  else value_string
   end
-  value
 end
 
 #
 # Try to get an argument by name if this message type supports it.
 #
-def try_get_arg(args, arg_name, message_type)
+def try_get_arg(arg_name, message_type)
   # Doesn't allow this arg type?  Return quietly.
-  return unless TYPES[Type][arg_name]
+  return unless TYPE[arg_name]
 
   if ARGV.size > 0
-    # If the arg is here and TYPES[Type][arg_name] is true or maybe, use it.
-    if block_given?
-      args << yield(ARGV.shift, arg_name, message_type)
-    else
-      args << try_eval(ARGV.shift, arg_name)
-    end
-  elsif TYPES[Type][arg_name] == :maybe
-    args << nil
+    # If the arg is here and TYPE[arg_name] is true or maybe, use it.
+    convert_to_ruby_value(ARGV.shift)
+  elsif TYPE[arg_name] == :maybe
+    nil
   else
-    Trollop::die "You must give a #{arg_name} for a metric of type #{Type}"
+    Trollop::die "You must give a #{arg_name} for a metric of type #{type}"
   end
 end
 
 ##############################
 # Build the argument list
 ##############################
-args = [ Type ]
+args = [type]
 
-try_get_arg(args, :name, Type) { |arg, _, _| arg.to_s }
-try_get_arg(args, :value, Type)
+args << try_get_arg(:name, type)
+args << try_get_arg(:value, type)
 # TODO(noah): add timeout for heartbeat
 
 # Time is next to last
@@ -116,7 +108,7 @@ labels = {}
 if opts[:labels]
   opts[:labels].flatten.each do |item|
     name, value = item.split("=")
-    labels[name] = try_eval(value, "label value")
+    labels[name] = convert_to_ruby_value(value)
   end
 end
 
