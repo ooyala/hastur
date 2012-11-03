@@ -484,7 +484,7 @@ module Hastur
   # Sends a 'mark' stat to Hastur.  A mark gives the time that
   # an interesting event occurred even with no value attached.
   # You can also use a mark to send back string-valued stats
-  # that might otherwise be guages -- "Green", "Yellow",
+  # that might otherwise be gauges -- "Green", "Yellow",
   # "Red" or similar.
   #
   # It is different from a Hastur event because it happens at
