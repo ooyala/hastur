@@ -476,8 +476,8 @@ module Hastur
   #
   # @param [Fixnum] new_address The new address.
   #
-  def udp_port=(new_address)
-    @udp_port = new_address
+  def udp_address=(new_address)
+    @udp_address = new_address
   end
 
   #
