@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency "yard"
   s.add_development_dependency "redcarpet"
   s.add_development_dependency "mocha"
-  s.add_development_dependency "minitest"
+  s.add_development_dependency "minitest", "= 3.5.0"
   s.add_development_dependency "simplecov" if RUBY_VERSION[/^1.9/]
   s.add_development_dependency "rake"
   s.add_runtime_dependency "multi_json", "~>1.3.2"
