@@ -642,9 +642,10 @@ module Hastur
   # @param [Hash] labels Any additional data labels to send
   #
   def heartbeat(name="application.heartbeat", value=nil, timeout = nil, timestamp=:now, labels={})
-    send_to_udp :name => message_name_prefix + (name || ""),
-                :type => :hb_process,
+    send_to_udp :type => :hb_process,
+                :name => message_name_prefix + (name || ""),
                 :value => value,
+                :timeout => timeout,
                 :timestamp => epoch_usec(timestamp),
                 :labels    => default_labels.merge(labels)
   end

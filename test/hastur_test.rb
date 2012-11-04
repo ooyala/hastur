@@ -95,11 +95,12 @@ class HasturApiTest < MiniTest::Unit::TestCase
   end
 
   def test_heartbeat
-    Hastur.heartbeat(nil, nil, nil, :now, :app => "myApp")
+    Hastur.heartbeat(nil, nil, 1000, :now, :app => "myApp")
     msgs = test_messages
     hash = msgs[-1]
     assert_equal("myApp", hash[:labels][:app])
     assert_equal("hb_process", hash[:type].to_s)
+    assert_equal(1000, hash[:timeout])
     assert hash[:labels].keys.sort == [:app, :pid, :tid],
       "Wrong keys #{hash[:labels].keys.inspect} in default labels!"
   end
