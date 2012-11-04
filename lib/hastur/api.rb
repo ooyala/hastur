@@ -195,7 +195,7 @@ module Hastur
   def add_default_labels(new_default_labels)
     @default_labels ||= {}
 
-    @default_labels.merge!
+    @default_labels.merge! new_default_labels
   end
 
   #
@@ -206,8 +206,8 @@ module Hastur
   # @param [Array<String> or multiple strings] default_label_keys Keys to stop sending
   #
   def remove_default_label_names(*default_label_keys)
+    return unless @default_labels
     keys_to_remove = default_label_keys.flatten
-
     keys_to_remove.each { |key| @default_labels.delete(key) }
   end
 
@@ -281,11 +281,11 @@ module Hastur
       thread[:tid] = thread_id(thread)
     end
 
-    {
+    (@default_labels || {}).merge(
       :pid => pid,
       :tid => thread[:tid],
       :app => app_name,
-    }
+    )
   end
 
   #
