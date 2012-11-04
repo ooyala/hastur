@@ -77,8 +77,12 @@ module Hastur
 
     return if @bg_thread
 
-    @intervals = [:five_secs, :minute, :hour, :day]
-    @interval_values = [5, 60, 60*60, 60*60*24 ]
+    @intervals = {
+      :five_secs => 5,
+      :minute => 60,
+      :hour => 60 * 60,
+      :day => 60 * 60 * 24
+    }
     __reset_bg_thread__
   end
 
@@ -231,7 +235,6 @@ module Hastur
     @scheduled_blocks = nil
     @last_time = nil
     @intervals = nil
-    @interval_values = nil
     @default_labels = nil
     @message_name_prefix = nil
   end
@@ -385,7 +388,7 @@ module Hastur
       @scheduled_blocks ||= Hash.new
 
       # initialize all of the scheduling hashes
-      @intervals.each do |interval|
+      @intervals.each_key do |interval|
         @last_time[interval] = Time.at(0)
         @scheduled_blocks[interval] = []
       end
@@ -404,14 +407,14 @@ module Hastur
           # for each of the interval buckets
           curr_time = Time.now
 
-          @intervals.each_with_index do |interval, idx|
+          @intervals.each do |interval, value|
             to_call = []
 
             # Don't need to dup this because we never change the old array, only reassign a new one.
             Hastur.mutex.synchronize { to_call = @scheduled_blocks[interval] }
 
             # execute the scheduled items if time is up
-            if curr_time - @last_time[ interval ] >= @interval_values[idx]
+            if curr_time - @last_time[interval] >= value
               @last_time[interval] = curr_time
               to_call.each(&:call)
             end
@@ -679,7 +682,7 @@ module Hastur
     end
 
     unless @intervals.include?(interval)
-      raise "Interval must be one of these: #{@intervals}, you gave #{interval.inspect}"
+      raise "Interval must be one of these: #{@intervals.keys}, you gave #{interval.inspect}"
     end
 
     # Don't add to existing array.  += will create a new array.  Then when we save a reference to the old
