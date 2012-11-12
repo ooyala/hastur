@@ -1,3 +1,3 @@
 module Hastur
-  VERSION = "1.2.13"
+  VERSION = "1.2.14"
 end
