@@ -281,11 +281,11 @@ module Hastur
       thread[:tid] = thread_id(thread)
     end
 
-    (@default_labels || {}).merge(
+    (@default_labels || {}).merge({
       :pid => pid,
       :tid => thread[:tid],
       :app => app_name,
-    )
+    })
   end
 
   #
