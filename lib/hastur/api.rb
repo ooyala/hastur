@@ -339,9 +339,12 @@ module Hastur
   end
 
   def __send_to_udp__(m)
+    @packet_seq_number ||= 0
+    @packet_seq_number += 1
+
     begin
       u = ::UDPSocket.new
-      mj = MultiJson.dump m
+      mj = MultiJson.dump m.merge(:client_pkt => @packet_seq_number)
       u.send mj, 0, udp_address, udp_port
     rescue Errno::EMSGSIZE => e
       return if @no_recurse
