@@ -383,6 +383,12 @@ module Hastur
       raise "You can't start a background thread!  Somebody called .no_background_thread! already."
     end
 
+    if RUBY_VERSION["1.8"]
+      STDERR.puts "You are starting a Hastur background thread with Ruby 1.8."
+      STDERR.puts "We have seen abnormally high load in cases like this."
+      STDERR.puts "Make sure to test for high load before deploying."
+    end
+
     __kill_bg_thread__
 
     @last_time ||= Hash.new
